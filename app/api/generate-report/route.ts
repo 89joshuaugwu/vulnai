@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { generateVulnReport } from "@/lib/gemini";
-import { rateLimit, getClientIP } from "@/lib/rateLimit";
+import { rateLimitAsync, getClientIP } from "@/lib/rateLimit";
 
 export async function POST(req: NextRequest) {
   const ip = getClientIP(req);
-  const rl = rateLimit(`generate:${ip}`, 10, 60000);
+  const rl = await rateLimitAsync(`generate:${ip}`, 10, 60);
   if (!rl.allowed) {
     return NextResponse.json({ error: "Too many requests. Try again shortly." }, { status: 429 });
   }

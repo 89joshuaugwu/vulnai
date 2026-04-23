@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { checkCanGenerateReport, getAllUsers, toggleProStatus, getAllReportsAdmin, UserProfile, SavedReport } from "@/lib/db";
 import Sidebar from "@/components/Sidebar";
 import toast from "react-hot-toast";
+import { motion } from "framer-motion";
 
 type AdminUser = UserProfile & { id: string };
 
@@ -28,10 +29,11 @@ export default function AdminDashboard() {
   const [searchQuery, setSearchQuery] = useState("");
 
   const navItems = [
-    { icon: NAV_ICONS.overview, label: "Overview", id: "overview" },
-    { icon: NAV_ICONS.users, label: "User Directory", id: "users" },
-    { icon: NAV_ICONS.logs, label: "Scan Logs", id: "logs" },
-    { icon: NAV_ICONS.settings, label: "Platform Settings", id: "settings" },
+    { icon: NAV_ICONS.overview, label: "Overview", id: "overview", onClick: () => router.push("/admin") },
+    { icon: NAV_ICONS.users, label: "Users", id: "users", onClick: () => router.push("/admin/users") },
+    { icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>, label: "Revenue", id: "revenue", onClick: () => router.push("/admin/revenue") },
+    { icon: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>, label: "Audit Log", id: "audit-log", onClick: () => router.push("/admin/audit-log") },
+    { icon: NAV_ICONS.settings, label: "Settings", id: "settings", onClick: () => router.push("/admin/settings") },
   ];
 
   useEffect(() => {
@@ -281,11 +283,14 @@ export default function AdminDashboard() {
   return (
     <div className="min-h-screen bg-cyber-bg text-cyber-text flex">
       <Sidebar navItems={navItems} activeItem={activeTab} onNavChange={setActiveTab} variant="admin" />
-      <main className="flex-1 lg:ml-[240px] p-4 sm:p-6 lg:p-8 pt-16 lg:pt-8 overflow-y-auto">
-        {activeTab === "overview" && renderOverview()}
-        {activeTab === "users" && renderUsers()}
-        {activeTab === "logs" && renderLogs()}
-        {activeTab === "settings" && renderSettings()}
+      <main className="flex-1 lg:ml-[240px] p-4 sm:p-6 lg:p-8 pt-16 lg:pt-8 overflow-y-auto overflow-x-hidden">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.2 }}
+        >
+          {renderOverview()}
+        </motion.div>
       </main>
     </div>
   );

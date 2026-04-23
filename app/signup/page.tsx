@@ -43,17 +43,11 @@ export default function SignupPage() {
 
     setLoading(true);
     try {
-      // 1. Generate OTP
-      const otp = Math.floor(100000 + Math.random() * 900000).toString();
-      
-      // 2. Save OTP to Firestore
-      await saveOtpToFirestore(email, otp);
-      
-      // 3. Send OTP via Email API
+      // 1. Send OTP via Email API (server handles generation and storage)
       const res = await fetch('/api/send-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, code: otp, type: 'signup' })
+        body: JSON.stringify({ email, type: 'signup' })
       });
       
       if (!res.ok) throw new Error("Failed to send verification email");

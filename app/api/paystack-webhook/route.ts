@@ -46,6 +46,18 @@ export async function POST(req: NextRequest) {
           paystackCustomerCode: data.customer?.customer_code || null,
           lastPaymentReference: data.reference,
         });
+
+        // Save transaction record to 'payments' collection
+        const { setDoc } = await import("firebase/firestore");
+        await setDoc(doc(db, "payments", data.reference), {
+          userId,
+          email: customerEmail,
+          amount: data.amount,
+          currency: data.currency || "NGN",
+          status: "success",
+          reference: data.reference,
+          createdAt: new Date().toISOString()
+        });
       }
 
       // Send confirmation email

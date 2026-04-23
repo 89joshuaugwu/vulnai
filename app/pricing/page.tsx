@@ -4,10 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useCurrency } from "@/hooks/useCurrency";
 import { useAuth } from "@/components/AuthProvider";
-import dynamic from "next/dynamic";
 import { useState } from "react";
-
-const PaystackButton = dynamic(() => import("@/components/PaystackButton"), { ssr: false });
 
 const PLANS = [
   {
@@ -183,17 +180,9 @@ export default function PricingPage() {
                   {plan.cta}
                 </Link>
               ) : (
-                user ? (
-                  <PaystackButton 
-                    amount={Math.round((plan.price || 0) * exchangeRate * 100)} 
-                    currency={currency} 
-                    className="w-full text-center py-3 rounded-lg font-bold text-sm bg-cyber-cyan text-cyber-bg hover:opacity-90 transition-all block" 
-                  />
-                ) : (
-                  <Link href="/signup" className="w-full text-center py-3 rounded-lg font-bold text-sm bg-cyber-cyan text-cyber-bg hover:opacity-90 transition-all block">
-                    Sign Up to Upgrade
-                  </Link>
-                )
+                <Link href={user ? "/dashboard?tab=settings" : "/signup"} className="w-full text-center py-3 rounded-lg font-bold text-sm bg-cyber-cyan text-cyber-bg hover:opacity-90 transition-all block">
+                  {user ? "Upgrade in Dashboard" : "Sign Up to Upgrade"}
+                </Link>
               )}
             </div>
           ))}

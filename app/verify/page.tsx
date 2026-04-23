@@ -43,9 +43,15 @@ function VerifyContent() {
 
     setLoading(true);
     try {
-      const isValid = await verifyOtpFromFirestore(email, code);
-      if (!isValid) {
-        throw new Error("Invalid or expired verification code");
+      const res = await fetch('/api/verify-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, code })
+      });
+      const data = await res.json();
+      
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || "Invalid or expired verification code");
       }
 
       await signUpWithEmail(email, password);

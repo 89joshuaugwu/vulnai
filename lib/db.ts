@@ -17,6 +17,7 @@ export interface UserProfile {
   reportsGeneratedToday: number;
   lastReportDate: string | null;
   require2FA?: boolean;
+  isSuspended?: boolean;
 }
 
 const FREE_DAILY_LIMIT = 3;
@@ -67,19 +68,32 @@ export async function getUserProfile(userId: string, email?: string): Promise<Us
   return data;
 }
 
-export async function checkCanGenerateReport(userId: string | null, email?: string): Promise<{ allowed: boolean; remaining: number; isPro: boolean, isAdmin: boolean, require2FA: boolean }> {
-  if (!userId) return { allowed: false, remaining: 0, isPro: false, isAdmin: false, require2FA: false };
+export async function checkCanGenerateReport(userId: string | null, email?: string): Promise<{ allowed: boolean; remaining: number; isPro: boolean, isAdmin: boolean, require2FA: boolean, isSuspended: boolean, announcementBanner?: string }> {
+  if (!userId) return { allowed: false, remaining: 0, isPro: false, isAdmin: false, require2FA: false, isSuspended: false };
 
-  const profile = await getUserProfile(userId, email);
+  const [profile, settingsSnap] = await Promise.all([
+    getUserProfile(userId, email),
+    getDoc(doc(db, "settings", "global"))
+  ]);
+
+  const globalSettings = settingsSnap.exists() ? settingsSnap.data() : { maintenanceMode: false, freeTierLimit: 3, announcementBanner: "" };
+  const banner = globalSettings.announcementBanner || undefined;
+
   if (profile.isAdmin) {
-    return { allowed: true, remaining: 9999, isPro: true, isAdmin: true, require2FA: profile.require2FA || false };
-  }
-  if (profile.isPro) {
-    return { allowed: true, remaining: 9999, isPro: true, isAdmin: false, require2FA: profile.require2FA || false };
+    return { allowed: true, remaining: 9999, isPro: true, isAdmin: true, require2FA: profile.require2FA || false, isSuspended: profile.isSuspended || false, announcementBanner: banner };
   }
 
-  const remaining = FREE_DAILY_LIMIT - profile.reportsGeneratedToday;
-  return { allowed: remaining > 0, remaining, isPro: false, isAdmin: false, require2FA: profile.require2FA || false };
+  // Block normal users if maintenance mode is enabled
+  if (globalSettings.maintenanceMode) {
+    return { allowed: false, remaining: 0, isPro: profile.isPro, isAdmin: false, require2FA: profile.require2FA || false, isSuspended: true, announcementBanner: banner };
+  }
+
+  if (profile.isPro) {
+    return { allowed: true, remaining: 9999, isPro: true, isAdmin: false, require2FA: profile.require2FA || false, isSuspended: profile.isSuspended || false, announcementBanner: banner };
+  }
+
+  const remaining = globalSettings.freeTierLimit - profile.reportsGeneratedToday;
+  return { allowed: remaining > 0, remaining: Math.max(0, remaining), isPro: false, isAdmin: false, require2FA: profile.require2FA || false, isSuspended: profile.isSuspended || false, announcementBanner: banner };
 }
 
 // ── ADMIN FUNCTIONS ──────────────────────────────────────────
@@ -106,6 +120,20 @@ export async function claimAdminStatus(userId: string) {
     isAdmin: true,
     isPro: true // Admins should probably be pro too
   });
+}
+
+export async function logAuditAction(adminId: string, adminEmail: string, action: string, details: string) {
+  try {
+    await addDoc(collection(db, "audit_logs"), {
+      adminId,
+      adminEmail,
+      action,
+      details,
+      createdAt: new Date().toISOString()
+    });
+  } catch (e) {
+    console.error("Failed to log audit action", e);
+  }
 }
 
 export async function saveReportToFirestore(report: Omit<SavedReport, "id">) {

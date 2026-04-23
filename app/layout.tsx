@@ -28,20 +28,18 @@ export default function RootLayout({
           toastOptions={{
             duration: 4000,
             style: {
-              background: "#161B22",
+              background: "#0D1117",
               color: "#C9D1D9",
-              border: "1px solid #30363D",
-              fontFamily: "'JetBrains Mono', 'Courier New', monospace",
-              fontSize: "13px",
-            },
-            iconTheme: {
-              primary: "#00D4FF",
-              secondary: "#161B22",
+              border: "1px solid rgba(0, 212, 255, 0.2)",
+              fontFamily: "var(--font-inter)",
+              fontSize: "14px",
+              boxShadow: "0 0 15px rgba(0, 212, 255, 0.1)",
+              borderRadius: "12px",
             },
             success: {
               iconTheme: {
-                primary: "#3FB950",
-                secondary: "#161B22",
+                primary: "#2EA043",
+                secondary: "#0D1117",
               },
             },
             error: {

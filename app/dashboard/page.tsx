@@ -10,6 +10,11 @@ import Sidebar from "@/components/Sidebar";
 import toast from "react-hot-toast";
 import ReactMarkdown from "react-markdown";
 import jsPDF from "jspdf";
+import dynamic from "next/dynamic";
+import { useCurrency } from "@/hooks/useCurrency";
+import { motion, AnimatePresence } from "framer-motion";
+
+const PaystackButton = dynamic(() => import("@/components/PaystackButton"), { ssr: false });
 
 const NAV_ICONS = {
   scan: <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>,
@@ -21,6 +26,7 @@ const NAV_ICONS = {
 function DashboardContent() {
   const { user, signOut } = useAuth();
   const router = useRouter();
+  const { formatPrice, currency, exchangeRate } = useCurrency();
 
   const searchParams = useSearchParams();
   const initialTab = searchParams.get("tab") || "overview";
@@ -30,7 +36,7 @@ function DashboardContent() {
   const [report, setReport] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
-  const [usageStats, setUsageStats] = useState({ allowed: false, remaining: 0, isPro: false, require2FA: false });
+  const [usageStats, setUsageStats] = useState({ allowed: false, remaining: 0, isPro: false, isAdmin: false, require2FA: false, announcementBanner: "" });
   // Password change state
   const [currentPw, setCurrentPw] = useState("");
   const [newPw, setNewPw] = useState("");
@@ -67,7 +73,15 @@ function DashboardContent() {
   const loadHistory = async () => {
     setHistoryLoading(true);
     try {
-      if (user) setHistory(await getUserReports(user.uid));
+      if (user) {
+        const { getUserReportsSecurely } = await import("@/app/actions/reports");
+        const res = await getUserReportsSecurely(user.uid);
+        if (res.success && res.reports) {
+          setHistory(res.reports as SavedReport[]);
+        } else {
+          toast.error("Failed to load history.");
+        }
+      }
     } catch { toast.error("Failed to load history."); }
     finally { setHistoryLoading(false); }
   };
@@ -95,7 +109,10 @@ function DashboardContent() {
       if (!res.ok) { const d = await res.json(); throw new Error(d.error || "Failed"); }
       const data = await res.json();
       setReport(data.report);
-      await saveReportToFirestore({ userId: user.uid, scanType, reportContent: data.report, scanInputSnippet: scanInput.substring(0, 100) + "...", createdAt: new Date().toISOString() });
+      
+      const { saveReportSecurely } = await import("@/app/actions/reports");
+      const saveRes = await saveReportSecurely(user.uid, scanType, data.report, scanInput);
+      if (!saveRes.success) throw new Error("Failed to securely save report");
       
       // Fire scan complete email
       if (user.email) {
@@ -106,7 +123,7 @@ function DashboardContent() {
         }).catch(console.error);
       }
 
-      toast.success("Report generated & saved!");
+      toast.success("Report generated & saved securely!");
       setUsageStats(p => ({ ...p, remaining: p.remaining - 1, allowed: p.isPro || p.remaining - 1 > 0 }));
     } catch (err: any) { toast.error(err.message || "Error"); }
     finally { setIsGenerating(false); }
@@ -332,7 +349,14 @@ ${report.replace(/^### (.*$)/gm, '<h3>$1</h3>').replace(/^## (.*$)/gm, '<h2>$1</
         </div>
         <div className="divide-y divide-cyber-border">
           {history.length === 0 ? (
-            <div className="p-8 text-center text-cyber-muted text-sm">No recent activity. Generate your first report!</div>
+            <div className="p-12 flex flex-col items-center justify-center text-center">
+              <div className="w-16 h-16 mb-4 rounded-full bg-cyber-bg border border-cyber-border flex items-center justify-center text-2xl text-cyber-muted">
+                <svg className="w-8 h-8 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+              </div>
+              <h4 className="text-sm font-bold text-white mb-1">No Reports Yet</h4>
+              <p className="text-xs text-cyber-muted max-w-xs mb-4">You haven't generated any vulnerability reports yet. Your recent activity will appear here.</p>
+              <button onClick={() => setActiveTab("scan")} className="text-xs bg-cyber-cyan text-cyber-bg font-bold px-4 py-2 rounded-lg hover:opacity-90 transition-all">Start a Scan</button>
+            </div>
           ) : (
             history.slice(0, 5).map((r) => (
               <div key={r.id} className="px-5 py-3 flex items-center justify-between hover:bg-cyber-bg/50 transition-colors">
@@ -447,7 +471,14 @@ ${report.replace(/^### (.*$)/gm, '<h3>$1</h3>').replace(/^## (.*$)/gm, '<h2>$1</
             {historyLoading ? (
               <div className="p-8 text-center text-cyber-cyan animate-pulse text-sm font-mono">Loading...</div>
             ) : history.length === 0 ? (
-              <div className="p-8 text-center text-cyber-muted text-sm">No reports yet.</div>
+              <div className="p-8 flex flex-col items-center justify-center text-center h-full">
+                <div className="w-12 h-12 mb-3 rounded-full bg-cyber-bg border border-cyber-border flex items-center justify-center text-xl text-cyber-muted">
+                  📜
+                </div>
+                <h4 className="text-xs font-bold text-white mb-1">No Reports</h4>
+                <p className="text-[10px] text-cyber-muted mb-4 max-w-[150px]">Your generated reports will appear here.</p>
+                <button onClick={() => setActiveTab("scan")} className="text-[10px] text-cyber-cyan hover:underline">Go to Scan</button>
+              </div>
             ) : history.map((r) => (
               <button key={r.id} onClick={() => setSelectedReport(r)} className={`w-full text-left p-4 hover:bg-cyber-bg/50 transition-colors ${selectedReport?.id === r.id ? "bg-cyber-bg border-l-[3px] border-cyber-cyan" : "border-l-[3px] border-transparent"}`}>
                 <div className="flex justify-between items-start mb-1">
@@ -468,16 +499,35 @@ ${report.replace(/^### (.*$)/gm, '<h3>$1</h3>').replace(/^## (.*$)/gm, '<h2>$1</
                   <h3 className="text-sm font-bold text-cyber-cyan">{selectedReport.scanType} Report</h3>
                   <p className="text-[10px] text-cyber-muted mt-0.5">{new Date(selectedReport.createdAt).toLocaleString()}</p>
                 </div>
-                <button onClick={() => { setReport(selectedReport.reportContent); setScanType(selectedReport.scanType); setActiveTab("scan"); }} className="text-[10px] bg-cyber-cyan/10 text-cyber-cyan border border-cyber-cyan/20 px-2.5 py-1.5 rounded hover:bg-cyber-cyan/20 transition-all">
-                  Load into Generator
-                </button>
+                <div className="flex items-center gap-2">
+                  {usageStats.isPro && (
+                    <button onClick={() => {
+                      navigator.clipboard.writeText(`${window.location.origin}/reports/${selectedReport.id}`);
+                      toast.success("Share link copied to clipboard!");
+                    }} className="text-[10px] bg-cyber-purple/10 text-cyber-purple border border-cyber-purple/20 px-2.5 py-1.5 rounded hover:bg-cyber-purple/20 transition-all flex items-center gap-1">
+                      <span>🔗</span> Share
+                    </button>
+                  )}
+                  <button onClick={() => { 
+                    setReport(selectedReport.reportContent); 
+                    setScanType(selectedReport.scanType); 
+                    // @ts-ignore - fullScanInput is returned from secure API
+                    if (selectedReport.fullScanInput) setScanInput(selectedReport.fullScanInput);
+                    setActiveTab("scan"); 
+                  }} className="text-[10px] bg-cyber-cyan/10 text-cyber-cyan border border-cyber-cyan/20 px-2.5 py-1.5 rounded hover:bg-cyber-cyan/20 transition-all">
+                    Load into Generator
+                  </button>
+                </div>
               </div>
               <div className="flex-1 overflow-y-auto p-6 prose prose-invert prose-sm max-w-none">
                 <ReactMarkdown>{selectedReport.reportContent}</ReactMarkdown>
               </div>
             </>
           ) : (
-            <div className="h-full flex items-center justify-center text-cyber-muted/40 text-sm">Select a report to view</div>
+            <div className="h-full flex flex-col items-center justify-center text-cyber-muted/30">
+              <svg className="w-16 h-16 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={0.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={0.5} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+              <p className="font-mono text-xs uppercase tracking-widest text-cyber-muted/50">Select a report to view</p>
+            </div>
           )}
         </div>
       </div>
@@ -524,6 +574,40 @@ ${report.replace(/^### (.*$)/gm, '<h3>$1</h3>').replace(/^## (.*$)/gm, '<h2>$1</
           </button>
         </div>
       </div>
+      
+      {/* Billing Section */}
+      <div className="bg-cyber-card border border-cyber-border rounded-xl p-6 space-y-4">
+        <h3 className="text-sm font-bold text-white uppercase tracking-wider">Billing & Subscription</h3>
+        <div className="flex items-center justify-between border-b border-cyber-border/50 pb-4">
+          <div>
+            <p className="text-sm font-medium text-white mb-1">Current Plan</p>
+            <p className="text-xs text-cyber-muted">
+              You are currently on the {usageStats.isPro ? "Pro" : usageStats.isAdmin ? "Admin" : "Hacker (Free)"} tier.
+            </p>
+          </div>
+          <span className={`text-[10px] px-2 py-0.5 rounded-full border uppercase tracking-widest font-bold ${
+            usageStats.isAdmin ? 'bg-cyber-red/10 text-cyber-red border-cyber-red/20' :
+            usageStats.isPro ? 'bg-cyber-cyan/10 text-cyber-cyan border-cyber-cyan/20' :
+            'bg-cyber-muted/10 text-cyber-muted border-cyber-border'
+          }`}>
+            {usageStats.isAdmin ? "Admin" : usageStats.isPro ? "Pro" : "Free"}
+          </span>
+        </div>
+        
+        {!usageStats.isPro && !usageStats.isAdmin && (
+          <div className="pt-2">
+            <p className="text-xs text-cyber-muted mb-4">Upgrade to Pro for unlimited reports, Advanced Gemini reasoning, shareable links, and priority support.</p>
+            <div className="max-w-[200px]">
+              <PaystackButton 
+                amount={Math.round(9 * exchangeRate * 100)} 
+                currency={currency} 
+                className="w-full text-center py-2.5 rounded-lg font-bold text-sm bg-cyber-cyan text-cyber-bg hover:opacity-90 transition-all block" 
+              />
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* Password Section */}
       <div className="bg-cyber-card border border-cyber-border rounded-xl p-6 space-y-4">
         <h3 className="text-sm font-bold text-white uppercase tracking-wider">Password</h3>
@@ -587,11 +671,26 @@ ${report.replace(/^### (.*$)/gm, '<h3>$1</h3>').replace(/^## (.*$)/gm, '<h2>$1</
   return (
     <div className="min-h-screen bg-cyber-bg text-cyber-text flex">
       <Sidebar navItems={navItems} activeItem={activeTab} onNavChange={setActiveTab} variant="user" />
-      <main className="flex-1 lg:ml-[240px] p-4 sm:p-6 lg:p-8 pt-16 lg:pt-8 overflow-y-auto">
-        {activeTab === "overview" && renderOverview()}
-        {activeTab === "scan" && renderScan()}
-        {activeTab === "history" && renderHistory()}
-        {activeTab === "settings" && renderSettings()}
+      <main className="flex-1 lg:ml-[240px] p-4 sm:p-6 lg:p-8 pt-16 lg:pt-8 overflow-y-auto overflow-x-hidden flex flex-col">
+        {usageStats.announcementBanner && (
+          <div className="mb-6 bg-cyber-orange/10 border border-cyber-orange/30 rounded-lg p-3 px-4 flex items-center justify-center text-cyber-orange text-xs font-medium font-mono uppercase tracking-widest shadow-[0_0_15px_rgba(255,165,0,0.1)]">
+            <span className="animate-pulse mr-2">●</span> {usageStats.announcementBanner}
+          </div>
+        )}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+          >
+            {activeTab === "overview" && renderOverview()}
+            {activeTab === "scan" && renderScan()}
+            {activeTab === "history" && renderHistory()}
+            {activeTab === "settings" && renderSettings()}
+          </motion.div>
+        </AnimatePresence>
       </main>
     </div>
   );

@@ -31,8 +31,17 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      const isValid = await verifyOtpFromFirestore(activeUserEmail, otpCode);
-      if (!isValid) throw new Error("Invalid or expired code");
+      const res = await fetch('/api/verify-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: activeUserEmail, code: otpCode })
+      });
+      const data = await res.json();
+      
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || "Invalid or expired code");
+      }
+      
       sessionStorage.setItem("2fa_passed", "true");
       toast.success("Login verified!");
       router.push("/dashboard");
@@ -52,10 +61,13 @@ export default function LoginPage() {
       
       if (userUid) {
         const stats = await checkCanGenerateReport(userUid, email);
+        if (stats.isSuspended) {
+          throw new Error("This account has been suspended.");
+        }
         if (stats.require2FA) {
           // Send OTP
           await fetch("/api/send-otp", {
-            method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email })
+            method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, type: 'login' })
           });
           setActiveUserEmail(email);
           setShow2FA(true);
@@ -85,9 +97,12 @@ export default function LoginPage() {
 
       if (userUid && userEmail) {
         const stats = await checkCanGenerateReport(userUid, userEmail);
+        if (stats.isSuspended) {
+          throw new Error("This account has been suspended.");
+        }
         if (stats.require2FA) {
           await fetch("/api/send-otp", {
-            method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: userEmail })
+            method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: userEmail, type: 'login' })
           });
           setActiveUserEmail(userEmail);
           setShow2FA(true);

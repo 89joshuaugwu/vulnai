@@ -1,20 +1,39 @@
 import { NextRequest, NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
-import { rateLimit, getClientIP } from '@/lib/rateLimit';
+import { rateLimitAsync, getClientIP } from '@/lib/rateLimit';
 
 export async function POST(req: NextRequest) {
   const ip = getClientIP(req);
-  const rl = rateLimit(`otp:${ip}`, 5, 60000);
+  const rl = await rateLimitAsync(`otp:${ip}`, 5, 60);
   if (!rl.allowed) {
     return NextResponse.json({ error: 'Too many OTP requests. Wait a moment.' }, { status: 429 });
   }
 
   try {
-    const { email, code, type } = await req.json();
+    const { email, type } = await req.json();
 
-    if (!email || !code || !type) {
+    if (!email || !type) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
+
+    // Generate a 6-digit OTP
+    const otpRaw = Math.floor(100000 + Math.random() * 900000).toString();
+
+    // Hash the OTP before storing it
+    const bcrypt = await import("bcryptjs");
+    const salt = await bcrypt.genSalt(10);
+    const hashedOtp = await bcrypt.hash(otpRaw, salt);
+
+    // Save hashed OTP to Firestore using client SDK
+    const { doc, setDoc } = await import("firebase/firestore");
+    const { db } = await import("@/lib/firebase");
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
+    await setDoc(doc(db, "otps", email), {
+      codeHash: hashedOtp,
+      expiresAt,
+      createdAt: new Date().toISOString()
+    });
+
 
     const transporter = nodemailer.createTransport({
       service: 'gmail',
@@ -41,7 +60,7 @@ export async function POST(req: NextRequest) {
           </p>
           
           <div style="background-color: #0D1117; padding: 20px; text-align: center; border-radius: 6px; border: 1px dashed #00D4FF; margin: 25px 0;">
-            <span style="font-size: 36px; font-weight: bold; color: #00D4FF; letter-spacing: 6px;">${code}</span>
+            <span style="font-size: 36px; font-weight: bold; color: #00D4FF; letter-spacing: 6px;">${otpRaw}</span>
           </div>
           
           <p style="color: #F85149; font-size: 13px; text-align: center; margin-bottom: 0;">

@@ -1,4 +1,5 @@
 "use client";
+import { useState, useEffect } from "react";
 
 import Link from "next/link";
 import Image from "next/image";
@@ -18,6 +19,12 @@ const SCANNERS = [
   { name: "Qualys", desc: "Cloud-based scanning" },
   { name: "Metasploit", desc: "Exploitation framework" },
   { name: "Acunetix", desc: "Automated web scanning" },
+];
+
+const TESTIMONIALS = [
+  { name: "John M.", role: "Freelance Pentester", company: "CyberGuard", text: "VulnAI literally saves me 4 hours per client. What used to be my entire Friday afternoon is now done in 60 seconds. Absolutely incredible.", avatar: "JM" },
+  { name: "Sarah K.", role: "Security Consultant", company: "TechDefend", text: "The severity classifications and CVE matching are spot on. It reads exactly like a report I would write myself, but instantly.", avatar: "SK" },
+  { name: "Ahmed B.", role: "IT Security Lead", company: "FinTech NG", text: "Compliance audits are so much easier now. We paste our Nessus scans and get beautiful PDFs ready for the board.", avatar: "AB" },
 ];
 
 const FEATURES = [
@@ -65,6 +72,32 @@ const STEPS = [
   { num: "03", title: "Download Professional Report", desc: "Get a formatted PDF with executive summary, findings table, and remediation steps." },
 ];
 
+const AnimatedCounter = ({ end, duration = 2000, suffix = "" }: { end: number, duration?: number, suffix?: string }) => {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    let startTime: number;
+    let animationFrame: number;
+
+    const updateCount = (timestamp: number) => {
+      if (!startTime) startTime = timestamp;
+      const progress = timestamp - startTime;
+      
+      if (progress < duration) {
+        setCount(Math.floor((progress / duration) * end));
+        animationFrame = requestAnimationFrame(updateCount);
+      } else {
+        setCount(end);
+      }
+    };
+
+    animationFrame = requestAnimationFrame(updateCount);
+    return () => cancelAnimationFrame(animationFrame);
+  }, [end, duration]);
+
+  return <span>{count.toLocaleString()}{suffix}</span>;
+};
+
 export default function LandingPage() {
   const { formatPrice, currency, loading: currencyLoading, exchangeRate } = useCurrency();
   const { user } = useAuth();
@@ -79,9 +112,9 @@ export default function LandingPage() {
             <span className="text-xl font-bold"><span className="text-white">Vuln</span><span className="text-cyber-cyan">AI</span></span>
           </Link>
           <div className="hidden md:flex items-center gap-8">
-            <a href="#features" className="text-sm text-cyber-muted hover:text-cyber-cyan transition-colors">Features</a>
-            <a href="#how" className="text-sm text-cyber-muted hover:text-cyber-cyan transition-colors">How it Works</a>
-            <a href="#pricing" className="text-sm text-cyber-muted hover:text-cyber-cyan transition-colors">Pricing</a>
+            <Link href="/features" onClick={(e) => { e.preventDefault(); document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' }); }} className="text-sm text-cyber-muted hover:text-cyber-cyan transition-colors">Features</Link>
+            <Link href="/pricing" className="text-sm text-cyber-muted hover:text-cyber-cyan transition-colors">Pricing</Link>
+            <Link href="/about" className="text-sm text-cyber-muted hover:text-cyber-cyan transition-colors">About</Link>
           </div>
           <div className="flex items-center gap-3">
             {user ? (
@@ -136,6 +169,23 @@ export default function LandingPage() {
             <a href="#how" className="rounded-lg border border-cyber-border px-8 py-4 text-base font-semibold text-cyber-muted transition-all hover:border-cyber-cyan hover:text-cyber-cyan">
               See how it works ↓
             </a>
+          </div>
+
+          <div className="mt-12 flex items-center justify-center gap-8 text-sm font-bold text-cyber-muted sm:gap-16">
+            <div className="flex flex-col items-center">
+              <span className="text-3xl text-cyber-cyan mb-1"><AnimatedCounter end={14250} suffix="+" /></span>
+              <span className="text-[10px] uppercase tracking-widest">Reports Generated</span>
+            </div>
+            <div className="h-10 w-px bg-cyber-border hidden sm:block"></div>
+            <div className="flex flex-col items-center">
+              <span className="text-3xl text-cyber-purple mb-1"><AnimatedCounter end={98400} suffix="+" /></span>
+              <span className="text-[10px] uppercase tracking-widest">Vulns Found</span>
+            </div>
+            <div className="h-10 w-px bg-cyber-border hidden sm:block"></div>
+            <div className="flex flex-col items-center">
+              <span className="text-3xl text-cyber-green mb-1"><AnimatedCounter end={850} suffix="+" /></span>
+              <span className="text-[10px] uppercase tracking-widest">Active Users</span>
+            </div>
           </div>
         </div>
 
@@ -198,6 +248,32 @@ export default function LandingPage() {
                 </div>
                 <h3 className="mb-2 text-lg font-bold text-cyber-text">{f.title}</h3>
                 <p className="text-sm leading-relaxed text-cyber-muted">{f.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ─── TESTIMONIALS ─── */}
+      <section className="px-6 py-24 bg-cyber-card/20 border-t border-cyber-border">
+        <div className="mx-auto max-w-7xl">
+          <h2 className="mb-4 text-center text-3xl font-bold text-cyber-text sm:text-4xl">Trusted by Professionals</h2>
+          <p className="mx-auto mb-16 max-w-xl text-center text-base text-cyber-muted">See what security teams are saying about VulnAI.</p>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {TESTIMONIALS.map((t, idx) => (
+              <div key={idx} className="relative rounded-2xl border border-cyber-border bg-cyber-card p-8">
+                <div className="absolute -top-4 left-8 text-5xl text-cyber-cyan/20 font-serif">"</div>
+                <p className="relative z-10 text-cyber-muted leading-relaxed mb-6 italic">{t.text}</p>
+                <div className="flex items-center gap-4 border-t border-cyber-border/50 pt-6">
+                  <div className="h-10 w-10 flex items-center justify-center rounded-full bg-cyber-cyan/10 border border-cyber-cyan/30 text-cyber-cyan font-bold text-sm">
+                    {t.avatar}
+                  </div>
+                  <div>
+                    <h4 className="text-white font-bold text-sm">{t.name}</h4>
+                    <p className="text-xs text-cyber-muted">{t.role} @ <span className="text-cyber-cyan">{t.company}</span></p>
+                  </div>
+                </div>
               </div>
             ))}
           </div>
@@ -296,6 +372,8 @@ export default function LandingPage() {
           </div>
           <p className="text-sm text-cyber-muted">Built by Joshuazaza · Enugu, Nigeria · Powered by Gemini AI</p>
           <div className="flex gap-4">
+            <Link href="/about" className="text-xs text-cyber-muted hover:text-cyber-cyan transition-colors">About</Link>
+            <Link href="/pricing" className="text-xs text-cyber-muted hover:text-cyber-cyan transition-colors">Pricing</Link>
             <Link href="/login" className="text-xs text-cyber-muted hover:text-cyber-cyan transition-colors">Sign In</Link>
             <Link href="/signup" className="text-xs text-cyber-muted hover:text-cyber-cyan transition-colors">Sign Up</Link>
             <Link href="/dashboard" className="text-xs text-cyber-muted hover:text-cyber-cyan transition-colors">Dashboard</Link>
