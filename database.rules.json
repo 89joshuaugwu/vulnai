@@ -1,0 +1,16 @@
+{
+  "rules": {
+    "users": {
+      "$uid": {
+        // Users can only read and write their own data
+        ".read": "auth != null && auth.uid == $uid",
+        ".write": "auth != null && auth.uid == $uid"
+      }
+    },
+    // Prevent access to any other root nodes
+    "$other": {
+      ".read": false,
+      ".write": false
+    }
+  }
+}
