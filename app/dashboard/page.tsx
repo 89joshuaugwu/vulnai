@@ -36,7 +36,7 @@ function DashboardContent() {
   const [report, setReport] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
-  const [usageStats, setUsageStats] = useState({ allowed: false, remaining: 0, isPro: false, isAdmin: false, require2FA: false, announcementBanner: "" });
+  const [usageStats, setUsageStats] = useState({ allowed: false, remaining: 0, isPro: false, isAdmin: false, require2FA: false, isSuspended: false, announcementBanner: "" });
   // Password change state
   const [currentPw, setCurrentPw] = useState("");
   const [newPw, setNewPw] = useState("");
@@ -77,7 +77,7 @@ function DashboardContent() {
         const { getUserReportsSecurely } = await import("@/app/actions/reports");
         const res = await getUserReportsSecurely(user.uid);
         if (res.success && res.reports) {
-          setHistory(res.reports as SavedReport[]);
+          setHistory(res.reports as unknown as SavedReport[]);
         } else {
           toast.error("Failed to load history.");
         }

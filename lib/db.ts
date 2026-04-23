@@ -68,8 +68,8 @@ export async function getUserProfile(userId: string, email?: string): Promise<Us
   return data;
 }
 
-export async function checkCanGenerateReport(userId: string | null, email?: string): Promise<{ allowed: boolean; remaining: number; isPro: boolean, isAdmin: boolean, require2FA: boolean, isSuspended: boolean, announcementBanner?: string }> {
-  if (!userId) return { allowed: false, remaining: 0, isPro: false, isAdmin: false, require2FA: false, isSuspended: false };
+export async function checkCanGenerateReport(userId: string | null, email?: string): Promise<{ allowed: boolean; remaining: number; isPro: boolean, isAdmin: boolean, require2FA: boolean, isSuspended: boolean, announcementBanner: string }> {
+  if (!userId) return { allowed: false, remaining: 0, isPro: false, isAdmin: false, require2FA: false, isSuspended: false, announcementBanner: "" };
 
   const [profile, settingsSnap] = await Promise.all([
     getUserProfile(userId, email),
@@ -77,7 +77,7 @@ export async function checkCanGenerateReport(userId: string | null, email?: stri
   ]);
 
   const globalSettings = settingsSnap.exists() ? settingsSnap.data() : { maintenanceMode: false, freeTierLimit: 3, announcementBanner: "" };
-  const banner = globalSettings.announcementBanner || undefined;
+  const banner = globalSettings.announcementBanner || "";
 
   if (profile.isAdmin) {
     return { allowed: true, remaining: 9999, isPro: true, isAdmin: true, require2FA: profile.require2FA || false, isSuspended: profile.isSuspended || false, announcementBanner: banner };

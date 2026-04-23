@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import Sidebar from "@/components/Sidebar";
 import { collection, getDocs, orderBy, query, doc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { logAuditAction } from "@/lib/db";
 import toast from "react-hot-toast";
 import { motion } from "framer-motion";
 

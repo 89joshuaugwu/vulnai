@@ -1,6 +1,7 @@
 "use server";
 
 import { adminDb } from "@/lib/firebase-admin";
+import { FieldValue } from "firebase-admin/firestore";
 import { encrypt, decrypt } from "@/lib/crypto";
 
 export async function saveReportSecurely(userId: string, scanType: string, reportContent: string, rawScanInput: string) {
@@ -18,7 +19,7 @@ export async function saveReportSecurely(userId: string, scanType: string, repor
     // Increment user usage
     const userRef = adminDb.collection("users").doc(userId);
     await userRef.update({
-      reportsGeneratedToday: adminDb.FieldValue.increment(1)
+      reportsGeneratedToday: FieldValue.increment(1)
     });
 
     return { success: true, id: docRef.id };
@@ -44,7 +45,10 @@ export async function getUserReportsSecurely(userId: string) {
       
       return {
         id: doc.id,
-        ...data,
+        userId: data.userId as string,
+        scanType: data.scanType as string,
+        reportContent: data.reportContent as string,
+        createdAt: data.createdAt as string,
         scanInputSnippet: snippet,
         fullScanInput: decryptedInput
       };

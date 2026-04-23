@@ -23,14 +23,32 @@ service cloud.firestore {
 
     // Reports collection
     match /reports/{reportId} {
-      // Users can read/delete their own. Admins can read all.
-      allow read: if request.auth != null && (resource.data.userId == request.auth.uid || isAdmin());
+      // Anyone with the exact ID can read the report (for shareable links)
+      allow get: if true;
+      
+      // Users can only list their own. Admins can list all.
+      allow list: if request.auth != null && (resource.data.userId == request.auth.uid || isAdmin());
+      
       allow delete: if request.auth != null && (resource.data.userId == request.auth.uid || isAdmin());
       
       // Creating is tied to the logged in user
       allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
       
       allow update: if false;
+    }
+
+    // Settings collection
+    match /settings/{document} {
+      // Anyone can read global settings (for UI banners etc)
+      allow read: if true;
+      // Only admins can update settings
+      allow write: if isAdmin();
+    }
+
+    // Audit logs
+    match /audit_logs/{logId} {
+      allow read: if isAdmin();
+      allow write: if false; // Written exclusively via admin SDK
     }
     
     // OTPs collection (internal)
