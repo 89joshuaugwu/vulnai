@@ -18,8 +18,20 @@ export async function saveReportSecurely(userId: string, scanType: string, repor
 
     // Increment user usage
     const userRef = adminDb.collection("users").doc(userId);
+    const userSnap = await userRef.get();
+    const userEmail = userSnap.exists ? userSnap.data()?.email || userId : userId;
+    
     await userRef.update({
       reportsGeneratedToday: FieldValue.increment(1)
+    });
+
+    // Log the action to audit log
+    await adminDb.collection("audit_logs").add({
+      adminId: userId,
+      adminEmail: userEmail,
+      action: "GENERATE_REPORT",
+      details: `Generated a new ${scanType} report`,
+      createdAt: new Date().toISOString()
     });
 
     return { success: true, id: docRef.id };

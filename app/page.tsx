@@ -63,6 +63,13 @@ const FEATURES = [
     description: "Paste your scan data and get a complete vulnerability report in under 30 seconds.",
     color: "#00d4ff",
   },
+  {
+    icon: "👥",
+    title: "Team Collaboration",
+    description: "Share reports with team members, assign remediation tasks, and track patching progress.",
+    color: "#e3b341",
+    comingSoon: true,
+  },
 ];
 
 const STEPS = [
@@ -289,7 +296,14 @@ export default function LandingPage() {
                 <div className="mb-4 w-12 h-12 rounded-lg flex items-center justify-center text-2xl transition-transform duration-300 group-hover:scale-110" style={{ backgroundColor: f.color + "15", border: `1px solid ${f.color}30` }}>
                   {f.icon}
                 </div>
-                <h3 className="mb-2 text-lg font-bold text-cyber-text">{f.title}</h3>
+                <div className="flex items-center gap-2 mb-2">
+                  <h3 className="text-lg font-bold text-cyber-text">{f.title}</h3>
+                  {f.comingSoon && (
+                    <span className="bg-cyber-orange/10 text-cyber-orange border border-cyber-orange/30 text-[9px] uppercase tracking-wider px-2 py-0.5 rounded-full font-bold">
+                      Coming Soon
+                    </span>
+                  )}
+                </div>
                 <p className="text-sm leading-relaxed text-cyber-muted">{f.description}</p>
               </div>
             ))}
@@ -481,7 +495,7 @@ export default function LandingPage() {
       {/* ─── FOOTER ─── */}
       <footer className="border-t border-cyber-border bg-cyber-card/50 px-6 pt-16 pb-8">
         <div className="mx-auto max-w-6xl">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-16">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
             {/* Brand Column */}
             <div className="col-span-1 md:col-span-1">
               <div className="flex items-center gap-2 mb-6">
@@ -516,6 +530,16 @@ export default function LandingPage() {
               <ul className="space-y-4 text-sm text-cyber-muted">
                 <li><Link href="/about" className="hover:text-cyber-cyan transition-colors">About Us</Link></li>
                 <li><a href="mailto:hello@vulnai.com" className="hover:text-cyber-cyan transition-colors">Contact</a></li>
+              </ul>
+            </div>
+
+            {/* Legal Column */}
+            <div className="col-span-1">
+              <h4 className="text-white font-bold mb-6">Legal</h4>
+              <ul className="space-y-4 text-sm text-cyber-muted">
+                <li><Link href="/privacy" className="hover:text-cyber-cyan transition-colors">Privacy Policy</Link></li>
+                <li><Link href="/terms" className="hover:text-cyber-cyan transition-colors">Terms of Service</Link></li>
+                <li><Link href="/ndpr" className="hover:text-cyber-cyan transition-colors font-medium">NDPR Compliance</Link></li>
               </ul>
             </div>
           </div>

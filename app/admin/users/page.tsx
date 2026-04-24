@@ -26,6 +26,7 @@ export default function AdminUsersPage() {
   const [users, setUsers] = useState<UserRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) { router.push("/login"); return; }
@@ -68,6 +69,15 @@ export default function AdminUsersPage() {
     } catch (e) {
       toast.error("Failed to update user");
     }
+    setOpenMenuId(null);
+  };
+
+  const handleDeleteUser = async (userId: string) => {
+    if (!confirm("WARNING: Are you absolutely sure you want to delete this user? This cannot be undone.")) return;
+    // In a real app, this would call a Cloud Function to delete the auth user as well.
+    // Here we'll just mock it or skip it, as it's complex to delete auth users from client.
+    toast.error("User deletion requires Admin SDK (Cloud Function).");
+    setOpenMenuId(null);
   };
 
   const navItems = [
@@ -112,6 +122,7 @@ export default function AdminUsersPage() {
                     <th className="px-4 py-3">Email</th>
                     <th className="px-4 py-3">Plan</th>
                     <th className="px-4 py-3 text-center">Reports Gen</th>
+                    <th className="px-4 py-3">Last Active</th>
                     <th className="px-4 py-3">Status</th>
                     <th className="px-4 py-3 text-right">Actions</th>
                   </tr>
@@ -131,6 +142,9 @@ export default function AdminUsersPage() {
                         )}
                       </td>
                       <td className="px-4 py-3 text-center font-mono text-cyber-cyan">{u.reportsGeneratedTotal || 0}</td>
+                      <td className="px-4 py-3 text-xs text-cyber-muted">
+                        {u.lastLoginDate ? new Date(u.lastLoginDate).toLocaleDateString() : "Never"}
+                      </td>
                       <td className="px-4 py-3">
                         {u.isSuspended ? (
                           <span className="text-cyber-red text-xs">Suspended</span>
@@ -138,18 +152,32 @@ export default function AdminUsersPage() {
                           <span className="text-cyber-green text-xs">Active</span>
                         )}
                       </td>
-                      <td className="px-4 py-3 text-right">
+                      <td className="px-4 py-3 text-right relative">
                         {!u.isAdmin && (
-                          <button
-                            onClick={() => handleToggleSuspend(u.id, !!u.isSuspended)}
-                            className={`text-xs px-3 py-1 rounded border transition-all ${
-                              u.isSuspended 
-                                ? "text-cyber-green border-cyber-green hover:bg-cyber-green/10" 
-                                : "text-cyber-red border-cyber-red hover:bg-cyber-red/10"
-                            }`}
-                          >
-                            {u.isSuspended ? "Unsuspend" : "Suspend"}
-                          </button>
+                          <>
+                            <button 
+                              onClick={() => setOpenMenuId(openMenuId === u.id ? null : u.id)}
+                              className="text-cyber-muted hover:text-white p-1 rounded hover:bg-cyber-bg transition-colors"
+                            >
+                              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" /></svg>
+                            </button>
+                            {openMenuId === u.id && (
+                              <div className="absolute right-0 mt-2 w-40 bg-cyber-card border border-cyber-border rounded-lg shadow-xl z-50 overflow-hidden">
+                                <button onClick={() => { /* Upgrade Logic */ setOpenMenuId(null); }} className="w-full text-left px-4 py-2 text-xs text-cyber-text hover:bg-cyber-bg hover:text-cyber-cyan transition-colors">
+                                  Upgrade Plan
+                                </button>
+                                <button onClick={() => { /* Email Logic */ setOpenMenuId(null); }} className="w-full text-left px-4 py-2 text-xs text-cyber-text hover:bg-cyber-bg hover:text-cyber-cyan transition-colors">
+                                  Send Email
+                                </button>
+                                <button onClick={() => handleToggleSuspend(u.id, !!u.isSuspended)} className="w-full text-left px-4 py-2 text-xs text-cyber-orange hover:bg-cyber-bg transition-colors border-t border-cyber-border">
+                                  {u.isSuspended ? "Unsuspend User" : "Suspend User"}
+                                </button>
+                                <button onClick={() => handleDeleteUser(u.id)} className="w-full text-left px-4 py-2 text-xs text-cyber-red hover:bg-cyber-bg transition-colors">
+                                  Delete Account
+                                </button>
+                              </div>
+                            )}
+                          </>
                         )}
                       </td>
                     </tr>

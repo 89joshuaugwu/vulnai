@@ -24,6 +24,8 @@ export default function AuditLogPage() {
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [logs, setLogs] = useState<AuditLog[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterType, setFilterType] = useState("ALL");
 
   useEffect(() => {
     if (!authLoading && !user) { router.push("/login"); return; }
@@ -75,6 +77,34 @@ export default function AuditLogPage() {
     );
   }
 
+  const filteredLogs = logs.filter(log => {
+    const matchesSearch = log.adminEmail.toLowerCase().includes(searchQuery.toLowerCase()) || log.details.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesFilter = filterType === "ALL" || log.action.includes(filterType);
+    return matchesSearch && matchesFilter;
+  });
+
+  const getBadgeStyle = (action: string) => {
+    if (action.includes("LOGIN") || action.includes("AUTH") || action.includes("OTP")) return "bg-blue-400/10 text-blue-400 border-blue-400/20";
+    if (action.includes("REPORT") || action.includes("GENERATE")) return "bg-cyan-400/10 text-cyan-400 border-cyan-400/20";
+    if (action.includes("PRO") || action.includes("BILLING")) return "bg-green-400/10 text-green-400 border-green-400/20";
+    if (action.includes("SUSPEND") || action.includes("SECURITY")) return "bg-amber-400/10 text-amber-400 border-amber-400/20";
+    return "bg-cyber-purple/10 text-cyber-purple border-cyber-purple/20";
+  };
+
+  const exportCSV = () => {
+    const headers = ["Timestamp", "User/Admin", "Action", "Details"];
+    const csvContent = "data:text/csv;charset=utf-8," 
+        + headers.join(",") + "\n" 
+        + filteredLogs.map(e => `"${new Date(e.createdAt).toLocaleString()}","${e.adminEmail}","${e.action}","${e.details}"`).join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "vulnai_audit_log.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div className="flex min-h-screen bg-[#080b0f]">
       <Sidebar navItems={navItems} activeItem="audit-log" onNavChange={() => {}} variant="admin" />
@@ -85,9 +115,32 @@ export default function AuditLogPage() {
           transition={{ duration: 0.2 }}
           className="space-y-8 max-w-5xl"
         >
-          <div>
-            <h1 className="text-2xl font-bold text-white mb-1">Audit Log</h1>
-            <p className="text-sm text-cyber-muted">Centralized record of all sensitive platform actions.</p>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
+            <div>
+              <h1 className="text-2xl font-bold text-white mb-1">Audit Log</h1>
+              <p className="text-sm text-cyber-muted">Centralized record of all sensitive platform actions.</p>
+            </div>
+            <div className="flex items-center gap-3 w-full sm:w-auto">
+              <input
+                type="text" placeholder="Search logs..."
+                value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
+                className="bg-cyber-bg border border-cyber-border rounded-lg px-4 py-2 text-sm text-cyber-text focus:border-cyber-cyan focus:outline-none flex-1 sm:w-48"
+              />
+              <select
+                value={filterType} onChange={(e) => setFilterType(e.target.value)}
+                className="bg-cyber-bg border border-cyber-border rounded-lg px-3 py-2 text-sm text-cyber-text focus:border-cyber-cyan focus:outline-none appearance-none"
+              >
+                <option value="ALL">All Types</option>
+                <option value="AUTH">Auth / Login</option>
+                <option value="REPORT">Reports</option>
+                <option value="PRO">Billing</option>
+                <option value="SUSPEND">Security</option>
+              </select>
+              <button onClick={exportCSV} className="bg-cyber-cyan text-cyber-bg font-bold px-4 py-2 rounded-lg text-sm hover:scale-105 transition-transform flex-shrink-0 flex items-center gap-2">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                Export CSV
+              </button>
+            </div>
           </div>
 
           <div className="bg-cyber-card border border-cyber-border rounded-xl p-6">
@@ -102,19 +155,19 @@ export default function AuditLogPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {logs.map((log) => (
+                  {filteredLogs.map((log) => (
                     <tr key={log.id} className="border-b border-cyber-border/30 hover:bg-cyber-border/10">
                       <td className="px-4 py-3 whitespace-nowrap text-cyber-muted font-mono text-[10px]">{new Date(log.createdAt).toLocaleString()}</td>
                       <td className="px-4 py-3 font-medium text-white text-xs">{log.adminEmail}</td>
                       <td className="px-4 py-3">
-                        <span className="bg-cyber-purple/10 text-cyber-purple text-[10px] px-2 py-0.5 rounded border border-cyber-purple/20 uppercase tracking-wide">
+                        <span className={`text-[10px] px-2 py-0.5 rounded border uppercase tracking-wide font-bold ${getBadgeStyle(log.action)}`}>
                           {log.action}
                         </span>
                       </td>
                       <td className="px-4 py-3 text-xs text-cyber-muted">{log.details}</td>
                     </tr>
                   ))}
-                  {logs.length === 0 && (
+                  {filteredLogs.length === 0 && (
                     <tr>
                       <td colSpan={4} className="px-4 py-8 text-center text-cyber-muted">No audit logs found</td>
                     </tr>
