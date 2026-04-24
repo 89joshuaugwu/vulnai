@@ -3,9 +3,11 @@ import { useState, useEffect } from "react";
 
 import Link from "next/link";
 import Image from "next/image";
+import { Search, Bot, FileDown, Shield, History, Zap, Users, Mail, FileText, Cpu, Download, Star } from "lucide-react";
 import { useCurrency } from "@/hooks/useCurrency";
 import { useAuth } from "@/components/AuthProvider";
 import dynamic from "next/dynamic";
+import { motion } from "framer-motion";
 
 const PaystackButton = dynamic(() => import("@/components/PaystackButton"), { ssr: false });
 
@@ -28,43 +30,43 @@ const TESTIMONIALS = [
 
 const FEATURES = [
   {
-    icon: "🔍",
+    icon: <Search size={24} />,
     title: "Multi-Scanner Support",
     description: "Supports 9+ security scanners including Nmap, Nessus, Burp Suite, OpenVAS, Nikto, OWASP ZAP, and more.",
     color: "#00d4ff",
   },
   {
-    icon: "🤖",
+    icon: <Bot size={24} />,
     title: "Gemini AI Analysis",
     description: "CREST-style vulnerability assessment with severity classification, CVE references, and remediation steps.",
     color: "#a371f7",
   },
   {
-    icon: "📄",
+    icon: <FileDown size={24} />,
     title: "PDF Export",
     description: "Download professional, client-ready penetration testing reports as formatted PDFs instantly.",
     color: "#3fb950",
   },
   {
-    icon: "🔒",
+    icon: <Shield size={24} />,
     title: "Secure & Private",
     description: "Your scan data never leaves our servers. Firebase-backed authentication with OTP verification.",
     color: "#f85149",
   },
   {
-    icon: "📊",
+    icon: <History size={24} />,
     title: "Report History",
     description: "All your generated reports are saved to your cloud dashboard. Re-view and re-download anytime.",
     color: "#e3b341",
   },
   {
-    icon: "⚡",
+    icon: <Zap size={24} />,
     title: "Instant Results",
     description: "Paste your scan data and get a complete vulnerability report in under 30 seconds.",
     color: "#00d4ff",
   },
   {
-    icon: "👥",
+    icon: <Users size={24} />,
     title: "Team Collaboration",
     description: "Share reports with team members, assign remediation tasks, and track patching progress.",
     color: "#e3b341",
@@ -73,9 +75,9 @@ const FEATURES = [
 ];
 
 const STEPS = [
-  { num: "01", title: "Paste Your Scan Output", desc: "Copy raw output from Nmap, Nessus, Burp Suite, or any supported scanner." },
-  { num: "02", title: "AI Analyzes Vulnerabilities", desc: "Gemini AI identifies CVEs, classifies severity, and assesses risk impact." },
-  { num: "03", title: "Download Professional Report", desc: "Get a formatted PDF with executive summary, findings table, and remediation steps." },
+  { num: "01", icon: <FileText className="text-cyber-cyan mb-4" size={32} />, title: "Paste Your Scan Output", desc: "Copy raw output from Nmap, Nessus, Burp Suite, or any supported scanner." },
+  { num: "02", icon: <Cpu className="text-cyber-cyan mb-4" size={32} />, title: "AI Analyzes Vulnerabilities", desc: "Gemini AI identifies CVEs, classifies severity, and assesses risk impact." },
+  { num: "03", icon: <Download className="text-cyber-cyan mb-4" size={32} />, title: "Download Professional Report", desc: "Get a formatted PDF with executive summary, findings table, and remediation steps." },
 ];
 
 const AnimatedCounter = ({ end, duration = 2000, suffix = "" }: { end: number, duration?: number, suffix?: string }) => {
@@ -102,6 +104,61 @@ const AnimatedCounter = ({ end, duration = 2000, suffix = "" }: { end: number, d
   }, [end, duration]);
 
   return <span>{count.toLocaleString()}{suffix}</span>;
+};
+
+const SectionBadge = ({ children }: { children: React.ReactNode }) => (
+  <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-cyber-border bg-cyber-card px-4 py-1.5 text-xs font-semibold text-cyber-muted uppercase tracking-widest shadow-sm">
+    {children}
+  </div>
+);
+
+const TerminalTypewriter = () => {
+  const [lines, setLines] = useState<number>(0);
+
+  useEffect(() => {
+    let t1 = setTimeout(() => setLines(1), 800); // Command typed
+    let t2 = setTimeout(() => setLines(2), 1500); // Starting
+    let t3 = setTimeout(() => setLines(3), 2000); // Report
+    let t4 = setTimeout(() => setLines(4), 2200); // Headers
+    let t5 = setTimeout(() => setLines(8), 3000); // Ports bulk
+    let t6 = setTimeout(() => setLines(9), 4500); // Analyzing...
+    let t7 = setTimeout(() => setLines(10), 6000); // Results
+    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearTimeout(t4); clearTimeout(t5); clearTimeout(t6); clearTimeout(t7); };
+  }, []);
+
+  return (
+    <div className="p-5 font-mono text-sm leading-relaxed">
+      <p className="text-cyber-green">$ {lines >= 1 ? "nmap -sV -sC -O 192.168.1.100" : <span className="animate-pulse">_</span>}</p>
+      {lines >= 2 && <p className="mt-2 text-cyber-muted">Starting Nmap 7.95 ( https://nmap.org )</p>}
+      {lines >= 3 && <p className="text-cyber-muted">Nmap scan report for 192.168.1.100</p>}
+      {lines >= 4 && <p className="mt-2 text-cyber-text">PORT &nbsp;&nbsp;&nbsp;STATE SERVICE &nbsp;VERSION</p>}
+      {lines >= 8 && (
+        <>
+          <p className="text-cyber-red">21/tcp open &nbsp;ftp &nbsp;&nbsp;&nbsp;&nbsp;vsftpd 2.3.4</p>
+          <p className="text-cyber-orange">22/tcp open &nbsp;ssh &nbsp;&nbsp;&nbsp;&nbsp;OpenSSH 4.7p1</p>
+          <p className="text-cyber-orange">80/tcp open &nbsp;http &nbsp;&nbsp;&nbsp;Apache httpd 2.2.8</p>
+          <p className="text-cyber-muted">443/tcp open &nbsp;ssl &nbsp;&nbsp;&nbsp;&nbsp;OpenSSL 0.9.8g</p>
+        </>
+      )}
+      {lines >= 9 && (
+        <div className="mt-4 border-t border-cyber-border pt-4">
+          <p className="text-cyber-cyan">→ VulnAI analyzing...<span className="ml-1 inline-block" style={{ animation: "blink 1s step-end infinite" }}>█</span></p>
+          {lines >= 10 && <p className="mt-1 text-cyber-green">→ 4 vulnerabilities detected (2 CRITICAL, 1 HIGH, 1 MEDIUM) ✓</p>}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// Framer Motion Variants
+const staggerContainer = {
+  hidden: { opacity: 0 },
+  show: { opacity: 1, transition: { staggerChildren: 0.1 } }
+};
+
+const staggerItem = {
+  hidden: { opacity: 0, y: 20 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.5 } }
 };
 
 export default function LandingPage() {
@@ -157,23 +214,29 @@ export default function LandingPage() {
 
         {/* Mobile Menu Dropdown */}
         {mobileMenuOpen && (
-          <div className="md:hidden border-t border-cyber-border bg-cyber-bg/95 backdrop-blur-xl absolute top-full left-0 w-full shadow-2xl">
-            <div className="flex flex-col px-6 py-4 gap-4">
-              <Link href="/features" onClick={(e) => { e.preventDefault(); document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' }); setMobileMenuOpen(false); }} className="text-sm font-medium text-cyber-text hover:text-cyber-cyan transition-colors">Features</Link>
-              <Link href="/pricing" onClick={() => setMobileMenuOpen(false)} className="text-sm font-medium text-cyber-text hover:text-cyber-cyan transition-colors">Pricing</Link>
-              <Link href="/about" onClick={() => setMobileMenuOpen(false)} className="text-sm font-medium text-cyber-text hover:text-cyber-cyan transition-colors">About Us</Link>
-              {!user && (
-                <Link href="/login" onClick={() => setMobileMenuOpen(false)} className="sm:hidden text-sm font-medium text-cyber-cyan hover:underline transition-colors mt-2">
-                  Sign In to your account
-                </Link>
-              )}
+          <div className="md:hidden border-t border-cyber-border bg-cyber-bg/95 backdrop-blur-md absolute top-full left-0 w-full shadow-2xl">
+            <div className="flex flex-col px-6 py-4 gap-0">
+              <Link href="/features" onClick={(e) => { e.preventDefault(); document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' }); setMobileMenuOpen(false); }} className="block py-4 text-sm font-medium text-cyber-text hover:text-cyber-cyan transition-colors border-b border-cyber-border/50">Features</Link>
+              <Link href="/pricing" onClick={() => setMobileMenuOpen(false)} className="block py-4 text-sm font-medium text-cyber-text hover:text-cyber-cyan transition-colors border-b border-cyber-border/50">Pricing</Link>
+              <Link href="/about" onClick={() => setMobileMenuOpen(false)} className="block py-4 text-sm font-medium text-cyber-text hover:text-cyber-cyan transition-colors border-b border-cyber-border/50">About Us</Link>
+              <div className="pt-6 pb-2">
+                {!user ? (
+                  <Link href="/signup" onClick={() => setMobileMenuOpen(false)} className="flex justify-center w-full rounded-lg bg-cyber-cyan px-5 py-3 text-sm font-bold text-cyber-bg transition-all hover:opacity-90">
+                    Get Started
+                  </Link>
+                ) : (
+                  <Link href="/dashboard" onClick={() => setMobileMenuOpen(false)} className="flex justify-center w-full rounded-lg bg-cyber-cyan px-5 py-3 text-sm font-bold text-cyber-bg transition-all hover:opacity-90">
+                    Dashboard →
+                  </Link>
+                )}
+              </div>
             </div>
           </div>
         )}
       </nav>
 
       {/* ─── HERO ─── */}
-      <section className="relative flex min-h-screen flex-col items-center justify-center px-6 pt-24 pb-20 text-center overflow-hidden">
+      <section className="relative flex min-h-screen flex-col items-center justify-center px-6 pt-32 pb-24 text-center overflow-hidden">
         {/* Animated glow */}
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center" aria-hidden="true">
           <div className="h-[600px] w-[600px] rounded-full opacity-30" style={{ background: "radial-gradient(circle, rgba(0,212,255,0.15) 0%, transparent 70%)", animation: "pulse-glow 4s ease-in-out infinite" }} />
@@ -188,9 +251,9 @@ export default function LandingPage() {
           </div>
 
           <h1 className="mb-6 text-4xl font-bold leading-tight text-cyber-text sm:text-5xl md:text-6xl lg:text-7xl">
-            Turn Raw Scan Output Into
+            Turn Raw Scan Output
             <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyber-cyan to-[#a371f7]">Professional Pentest Reports</span>
+            <span className="text-cyber-cyan">Into Professional Pentest Reports</span>
           </h1>
 
           <p className="mx-auto mb-10 max-w-2xl text-base leading-relaxed text-cyber-muted sm:text-lg">
@@ -248,51 +311,42 @@ export default function LandingPage() {
               <div className="h-3 w-3 rounded-full bg-cyber-green" />
               <span className="ml-3 text-xs text-cyber-muted">terminal — nmap_scan.txt</span>
             </div>
-            <div className="p-5 font-mono text-sm leading-relaxed">
-              <p className="text-cyber-green">$ nmap -sV -sC -O 192.168.1.100</p>
-              <p className="mt-2 text-cyber-muted">Starting Nmap 7.95 ( https://nmap.org )</p>
-              <p className="text-cyber-muted">Nmap scan report for 192.168.1.100</p>
-              <p className="mt-2 text-cyber-text">PORT &nbsp;&nbsp;&nbsp;STATE SERVICE &nbsp;VERSION</p>
-              <p className="text-cyber-red">21/tcp open &nbsp;ftp &nbsp;&nbsp;&nbsp;&nbsp;vsftpd 2.3.4</p>
-              <p className="text-cyber-orange">22/tcp open &nbsp;ssh &nbsp;&nbsp;&nbsp;&nbsp;OpenSSH 4.7p1</p>
-              <p className="text-cyber-orange">80/tcp open &nbsp;http &nbsp;&nbsp;&nbsp;Apache httpd 2.2.8</p>
-              <p className="text-cyber-muted">443/tcp open &nbsp;ssl &nbsp;&nbsp;&nbsp;&nbsp;OpenSSL 0.9.8g</p>
-              <div className="mt-4 border-t border-cyber-border pt-4">
-                <p className="text-cyber-cyan">→ VulnAI analyzing...<span className="ml-1 inline-block" style={{ animation: "blink 1s step-end infinite" }}>█</span></p>
-                <p className="mt-1 text-cyber-green">→ 4 vulnerabilities detected (2 CRITICAL, 1 HIGH, 1 MEDIUM) ✓</p>
-              </div>
-            </div>
+            <TerminalTypewriter />
           </div>
         </div>
       </section>
 
       {/* ─── HOW IT WORKS ─── */}
-      <section id="how" className="px-6 py-24 border-t border-cyber-border">
+      <section id="how" className="px-6 py-24 border-t border-cyber-border bg-[#111318]">
         <div className="mx-auto max-w-5xl">
-          <h2 className="mb-4 text-center text-3xl font-bold text-cyber-text sm:text-4xl">How it works</h2>
+          <h2 className="mb-4 text-center text-4xl md:text-5xl font-bold text-white leading-tight">How it works</h2>
           <p className="mx-auto mb-16 max-w-xl text-center text-base text-cyber-muted">Three simple steps to go from raw scan data to a professional report.</p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <motion.div variants={staggerContainer} initial="hidden" whileInView="show" viewport={{ once: true, margin: "-100px" }} className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
+            {/* Desktop Connecting Line */}
+            <div className="hidden md:block absolute top-1/2 left-[16%] right-[16%] h-[2px] bg-gradient-to-r from-transparent via-cyber-cyan/20 to-transparent -translate-y-1/2 z-0 pointer-events-none" />
+            
             {STEPS.map((step) => (
-              <div key={step.num} className="relative group">
-                <div className="bg-cyber-card border border-cyber-border rounded-xl p-6 hover:border-cyber-cyan/40 hover:shadow-[0_0_25px_rgba(0,212,255,0.06)] transition-all duration-300">
-                  <span className="text-5xl font-bold text-cyber-cyan/10 font-mono">{step.num}</span>
-                  <h3 className="text-lg font-bold text-white mt-2 mb-2">{step.title}</h3>
-                  <p className="text-sm text-cyber-muted leading-relaxed">{step.desc}</p>
+              <motion.div variants={staggerItem} key={step.num} className="relative group z-10">
+                <div className="bg-cyber-card border border-cyber-border rounded-xl p-8 hover:border-cyber-cyan/40 hover:shadow-[0_0_25px_rgba(0,212,255,0.06)] transition-all duration-300 overflow-hidden text-center relative flex flex-col items-center">
+                  <div className="absolute -bottom-4 -right-4 text-[120px] font-bold text-cyber-cyan/5 font-mono pointer-events-none select-none">{step.num}</div>
+                  {step.icon}
+                  <h3 className="text-lg font-bold text-white mb-3 z-10">{step.title}</h3>
+                  <p className="text-sm text-cyber-muted leading-relaxed z-10">{step.desc}</p>
                 </div>
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
       </section>
 
       {/* ─── FEATURES ─── */}
       <section id="features" className="px-6 py-24">
         <div className="mx-auto max-w-7xl">
-          <h2 className="mb-4 text-center text-3xl font-bold text-cyber-text sm:text-4xl">Everything you need</h2>
+          <h2 className="mb-4 text-center text-4xl md:text-5xl font-bold text-white leading-tight">Everything you need</h2>
           <p className="mx-auto mb-16 max-w-xl text-center text-base text-cyber-muted">From scan input to client-ready report — VulnAI handles the entire vulnerability documentation workflow.</p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <motion.div variants={staggerContainer} initial="hidden" whileInView="show" viewport={{ once: true, margin: "-50px" }} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {FEATURES.map((f) => (
-              <div key={f.title} className="group rounded-xl border border-cyber-border bg-cyber-card p-6 transition-all duration-300 hover:-translate-y-1 hover:border-opacity-50 hover:shadow-[0_0_25px_rgba(0,212,255,0.06)]" style={{ ["--hover-color" as string]: f.color }}>
+              <motion.div variants={staggerItem} key={f.title} className="group rounded-xl border border-cyber-border bg-cyber-card p-6 transition-all duration-300 hover:-translate-y-1 hover:border-opacity-50 hover:shadow-[0_0_25px_rgba(0,212,255,0.06)]" style={{ ["--hover-color" as string]: f.color }}>
                 <div className="mb-4 w-12 h-12 rounded-lg flex items-center justify-center text-2xl transition-transform duration-300 group-hover:scale-110" style={{ backgroundColor: f.color + "15", border: `1px solid ${f.color}30` }}>
                   {f.icon}
                 </div>
@@ -305,24 +359,30 @@ export default function LandingPage() {
                   )}
                 </div>
                 <p className="text-sm leading-relaxed text-cyber-muted">{f.description}</p>
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
       </section>
 
       {/* ─── TESTIMONIALS ─── */}
-      <section className="px-6 py-24 bg-cyber-card/20 border-t border-cyber-border">
-        <div className="mx-auto max-w-7xl">
-          <h2 className="mb-4 text-center text-3xl font-bold text-cyber-text sm:text-4xl">Trusted by Professionals</h2>
+      <section className="px-6 py-24 bg-[#111318] border-t border-cyber-border relative overflow-hidden">
+        <div className="absolute inset-0 flex justify-center items-center pointer-events-none opacity-[0.02]">
+          <div className="w-full h-full" style={{ background: "radial-gradient(circle, rgba(0,212,255,1) 0%, transparent 60%)" }}></div>
+        </div>
+        <div className="mx-auto max-w-7xl relative z-10">
+          <h2 className="mb-4 text-center text-4xl md:text-5xl font-bold text-white leading-tight">Trusted by Professionals</h2>
           <p className="mx-auto mb-16 max-w-xl text-center text-base text-cyber-muted">See what security teams are saying about VulnAI.</p>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <motion.div variants={staggerContainer} initial="hidden" whileInView="show" viewport={{ once: true, margin: "-50px" }} className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {TESTIMONIALS.map((t, idx) => (
-              <div key={idx} className="relative rounded-2xl border border-cyber-border bg-cyber-card p-8">
+              <motion.div variants={staggerItem} key={idx} className="relative rounded-2xl border border-cyber-border bg-cyber-card p-8 flex flex-col">
                 <div className="absolute -top-4 left-8 text-5xl text-cyber-cyan/20 font-serif">"</div>
-                <p className="relative z-10 text-cyber-muted leading-relaxed mb-6 italic">{t.text}</p>
-                <div className="flex items-center gap-4 border-t border-cyber-border/50 pt-6">
+                <p className="relative z-10 text-cyber-muted leading-relaxed mb-6 italic max-w-prose flex-1">{t.text}</p>
+                <div className="flex text-cyber-cyan gap-1 mb-4">
+                  {[1,2,3,4,5].map(star => <Star key={star} size={14} fill="currentColor" />)}
+                </div>
+                <div className="flex items-center gap-4 border-t border-cyber-border/50 pt-4">
                   <div className="h-10 w-10 flex items-center justify-center rounded-full bg-cyber-cyan/10 border border-cyber-cyan/30 text-cyber-cyan font-bold text-sm">
                     {t.avatar}
                   </div>
@@ -331,9 +391,9 @@ export default function LandingPage() {
                     <p className="text-xs text-cyber-muted">{t.role} @ <span className="text-cyber-cyan">{t.company}</span></p>
                   </div>
                 </div>
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
       </section>
 
@@ -341,37 +401,39 @@ export default function LandingPage() {
       <section className="px-6 py-16 border-t border-cyber-border">
         <div className="mx-auto max-w-5xl">
           <div className="mb-10 text-center">
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-cyber-border bg-cyber-card px-4 py-1.5 text-xs font-semibold text-cyber-muted">
+            <SectionBadge>
               <span className="text-cyber-cyan font-mono">&gt;_</span> SUPPORTED SCANNERS
-            </div>
-            <h2 className="text-2xl font-bold text-cyber-text sm:text-3xl">Works with every tool in your stack</h2>
+            </SectionBadge>
+            <h2 className="text-4xl md:text-5xl font-bold text-white leading-tight">Works with every tool in your stack</h2>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <motion.div variants={staggerContainer} initial="hidden" whileInView="show" viewport={{ once: true, margin: "-50px" }} className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {SCANNERS.map((s) => {
-              // Map our simplified color names to FULL Tailwind classes so they compile correctly
-              const colorMap: Record<string, { text: string, bg: string, hoverBorder: string }> = {
-                cyan: { text: "text-cyan-400", bg: "bg-cyan-400/10", hoverBorder: "hover:border-cyan-400/50" },
-                purple: { text: "text-purple-400", bg: "bg-purple-400/10", hoverBorder: "hover:border-purple-400/50" },
-                orange: { text: "text-orange-400", bg: "bg-orange-400/10", hoverBorder: "hover:border-orange-400/50" },
-                green: { text: "text-emerald-400", bg: "bg-emerald-400/10", hoverBorder: "hover:border-emerald-400/50" },
-                blue: { text: "text-blue-400", bg: "bg-blue-400/10", hoverBorder: "hover:border-blue-400/50" },
-                red: { text: "text-rose-400", bg: "bg-rose-400/10", hoverBorder: "hover:border-rose-400/50" },
-                amber: { text: "text-amber-400", bg: "bg-amber-400/10", hoverBorder: "hover:border-amber-400/50" },
-                gray: { text: "text-gray-400", bg: "bg-gray-400/10", hoverBorder: "hover:border-gray-400/50" },
+              const colorMap: Record<string, string> = {
+                cyan: "#00D4FF",
+                purple: "#8B5CF6",
+                orange: "#F59E0B",
+                green: "#10B981",
+                blue: "#3B82F6",
+                red: "#EF4444",
+                amber: "#F97316",
+                gray: "#6B7280",
               };
-              const theme = colorMap[s.color] || colorMap.cyan;
+              const hex = colorMap[s.color] || colorMap.cyan;
 
               return (
-                <div key={s.name} className={`relative rounded-xl border border-cyber-border bg-cyber-card p-5 ${theme.hoverBorder} hover:bg-cyber-card/80 hover:-translate-y-1 transition-all duration-300 group`}>
-                  <div className={`mb-3 inline-flex h-8 w-8 items-center justify-center rounded-lg ${theme.bg} ${theme.text} font-mono text-sm`}>
+                <motion.div variants={staggerItem} key={s.name} className="relative rounded-xl border border-cyber-border bg-cyber-card p-5 hover:-translate-y-1 transition-all duration-300 group" style={{ "--hover-border": hex } as React.CSSProperties}>
+                  <style jsx>{`
+                    .group:hover { border-color: ${hex}50; box-shadow: 0 0 15px ${hex}15; }
+                  `}</style>
+                  <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-lg font-mono text-sm font-bold" style={{ backgroundColor: `${hex}15`, color: hex, border: `1px solid ${hex}30` }}>
                     &gt;_
                   </div>
-                  <h3 className={`text-base font-bold ${theme.text} mb-1 group-hover:text-white transition-colors`}>{s.name}</h3>
+                  <h3 className="text-base font-bold text-cyber-muted mb-1 group-hover:text-white transition-colors">{s.name}</h3>
                   <p className="text-xs text-cyber-muted">{s.desc}</p>
-                </div>
+                </motion.div>
               );
             })}
-          </div>
+          </motion.div>
         </div>
       </section>
 
@@ -379,10 +441,8 @@ export default function LandingPage() {
       <section id="pricing" className="px-6 py-24 bg-cyber-card/30 border-y border-cyber-border">
         <div className="mx-auto max-w-6xl">
           <div className="mb-10 text-center">
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-cyber-border bg-cyber-card px-4 py-1.5 text-xs font-semibold text-cyber-muted">
-              PRICING
-            </div>
-            <h2 className="mb-4 text-3xl font-bold text-cyber-text sm:text-4xl">Simple, transparent pricing</h2>
+            <SectionBadge>PRICING</SectionBadge>
+            <h2 className="mb-4 text-4xl md:text-5xl font-bold text-white leading-tight">Simple, transparent pricing</h2>
             <p className="text-base text-cyber-muted">
               {currency !== "USD" && !currencyLoading && (
                 <span className="block mb-2 text-cyber-cyan text-sm">✨ Prices automatically converted to {currency}</span>
@@ -476,8 +536,9 @@ export default function LandingPage() {
         <div className="mx-auto max-w-3xl rounded-2xl border border-cyber-border bg-gradient-to-b from-cyber-card to-cyber-bg p-12 text-center sm:p-16 relative overflow-hidden">
           <div className="absolute inset-0 opacity-[0.02]" style={{ backgroundImage: "linear-gradient(rgba(0,212,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(0,212,255,0.5) 1px, transparent 1px)", backgroundSize: "40px 40px" }} />
           <div className="relative z-10">
-            <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl border border-cyber-cyan/30 bg-cyber-cyan/10 shadow-[0_0_30px_rgba(0,212,255,0.2)]">
-              <Image src="/logo.png" alt="VulnAI" width={32} height={32} className="rounded" />
+            <div className="mx-auto mb-6 flex items-center justify-center gap-2">
+              <Image src="/logo.png" alt="VulnAI" width={48} height={48} className="rounded-xl shadow-[0_0_20px_rgba(0,212,255,0.4)]" />
+              <span className="text-3xl font-bold"><span className="text-white">Vuln</span><span className="text-cyber-cyan">AI</span></span>
             </div>
             <h2 className="mb-4 text-3xl font-bold text-white sm:text-4xl">Ready to write your first <span className="text-cyber-cyan">AI-powered</span> pentest report?</h2>
             <p className="mb-8 text-base text-cyber-muted">Join 2,100+ security professionals automating their workflow.</p>
@@ -506,10 +567,16 @@ export default function LandingPage() {
                 Transform raw vulnerability scan output into professional pentest reports in under 60 seconds — powered by Google Gemini AI.
               </p>
               <div className="flex gap-4">
-                <a href="#" className="w-8 h-8 rounded border border-cyber-border flex items-center justify-center text-cyber-muted hover:text-cyber-cyan hover:border-cyber-cyan transition-colors">𝕏</a>
-                <a href="#" className="w-8 h-8 rounded border border-cyber-border flex items-center justify-center text-cyber-muted hover:text-cyber-cyan hover:border-cyber-cyan transition-colors">GH</a>
-                <a href="#" className="w-8 h-8 rounded border border-cyber-border flex items-center justify-center text-cyber-muted hover:text-cyber-cyan hover:border-cyber-cyan transition-colors">IN</a>
-                <a href="mailto:hello@vulnai.com" className="w-8 h-8 rounded border border-cyber-border flex items-center justify-center text-cyber-muted hover:text-cyber-cyan hover:border-cyber-cyan transition-colors">@</a>
+                <a href="#" className="w-8 h-8 rounded border border-cyber-border flex items-center justify-center text-cyber-muted hover:text-cyber-cyan hover:border-cyber-cyan transition-colors">
+                  <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"></path></svg>
+                </a>
+                <a href="#" className="w-8 h-8 rounded border border-cyber-border flex items-center justify-center text-cyber-muted hover:text-cyber-cyan hover:border-cyber-cyan transition-colors">
+                  <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.8c0-1.2-.4-2.4-1.2-3.2 3-.3 6.1-1.5 6.1-6.6 0-1.5-.5-2.7-1.4-3.6.1-.3.6-1.7-.1-3.6 0 0-1.1-.4-3.6 1.3-1.1-.3-2.2-.4-3.3-.4-1.1 0-2.2.1-3.3.4-2.5-1.7-3.6-1.3-3.6-1.3-.7 1.9-.2 3.3-.1 3.6-.9.9-1.4 2.1-1.4 3.6 0 5.1 3 6.3 6 6.6-.8.7-1.1 1.9-1.1 3.2V22"></path></svg>
+                </a>
+                <a href="#" className="w-8 h-8 rounded border border-cyber-border flex items-center justify-center text-cyber-muted hover:text-cyber-cyan hover:border-cyber-cyan transition-colors">
+                  <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg>
+                </a>
+                <a href="mailto:hello@vulnai.com" className="w-8 h-8 rounded border border-cyber-border flex items-center justify-center text-cyber-muted hover:text-cyber-cyan hover:border-cyber-cyan transition-colors"><Mail size={16} /></a>
               </div>
             </div>
 
