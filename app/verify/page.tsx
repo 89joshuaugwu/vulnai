@@ -80,7 +80,7 @@ function VerifyContent() {
         
         <div className="flex flex-col items-center mb-8">
           <Link href="/" className="flex flex-col items-center gap-2">
-            <Image src="/logo.png" alt="VulnAI" width={48} height={48} style={{ width: 'auto', height: 'auto' }} className="rounded-xl" />
+            <Image src="/logo.png" alt="VulnAI" width={48} height={48} className="rounded-xl" />
             <span className="text-xl font-bold mb-4"><span className="text-white">Vuln</span><span className="text-cyber-cyan">AI</span></span>
           </Link>
           <h1 className="text-2xl font-bold text-cyber-text">Verify Email</h1>

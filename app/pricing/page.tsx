@@ -10,7 +10,7 @@ const PLANS = [
   {
     name: "Hacker",
     badge: "FREE",
-    price: 0,
+    price: "₦0",
     period: "forever",
     color: "#8B949E",
     features: [
@@ -32,7 +32,7 @@ const PLANS = [
   {
     name: "Pro Pentester",
     badge: "POPULAR",
-    price: 9,
+    price: "₦5,000",
     period: "/month",
     color: "#00D4FF",
     features: [
@@ -113,7 +113,7 @@ export default function PricingPage() {
       <nav className="border-b border-cyber-border bg-cyber-bg/80 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
           <Link href="/" className="flex items-center gap-2.5 group">
-            <Image src="/logo.png" alt="VulnAI" width={36} height={36} style={{ width: 'auto', height: 'auto' }} className="rounded-lg" />
+            <Image src="/logo.png" alt="VulnAI" width={36} height={36} className="rounded-lg" />
             <span className="text-xl font-bold"><span className="text-white">Vuln</span><span className="text-cyber-cyan">AI</span></span>
           </Link>
           <div className="flex items-center gap-4">
@@ -153,7 +153,7 @@ export default function PricingPage() {
               <div className="mb-8">
                 {plan.price !== null ? (
                   <div className="flex items-baseline gap-1">
-                    <span className="text-4xl font-bold text-white">{formatPrice(plan.price)}</span>
+                    <span className="text-4xl font-bold text-white">{plan.price}</span>
                     <span className="text-sm text-cyber-muted">{plan.period}</span>
                   </div>
                 ) : (
@@ -255,7 +255,7 @@ export default function PricingPage() {
       <footer className="border-t border-cyber-border px-6 py-8">
         <div className="mx-auto max-w-7xl flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <Image src="/logo.png" alt="VulnAI" width={24} height={24} style={{ width: 'auto', height: 'auto' }} className="rounded" />
+            <Image src="/logo.png" alt="VulnAI" width={24} height={24} className="rounded" />
             <span className="text-sm font-bold"><span className="text-white">Vuln</span><span className="text-cyber-cyan">AI</span></span>
           </div>
           <p className="text-sm text-cyber-muted">Built by Joshuazaza · Enugu, Nigeria</p>

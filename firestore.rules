@@ -55,5 +55,11 @@ service cloud.firestore {
     match /otps/{email} {
       allow read, write: if true; // In a production app, OTPs should be strictly backend verified only. This is simplified.
     }
+    // Payments collection
+    match /payments/{paymentId} {
+      allow read: if isAdmin();
+      allow write: if false; // Written exclusively via admin SDK
+    }
+
   }
 }

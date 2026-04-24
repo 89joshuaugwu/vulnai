@@ -19,7 +19,7 @@ export default function AboutPage() {
       <nav className="border-b border-cyber-border bg-cyber-bg/80 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
           <Link href="/" className="flex items-center gap-2.5 group">
-            <Image src="/logo.png" alt="VulnAI" width={36} height={36} style={{ width: 'auto', height: 'auto' }} className="rounded-lg" />
+            <Image src="/logo.png" alt="VulnAI" width={36} height={36} className="rounded-lg" />
             <span className="text-xl font-bold"><span className="text-white">Vuln</span><span className="text-cyber-cyan">AI</span></span>
           </Link>
           <div className="flex items-center gap-4">
@@ -132,7 +132,7 @@ export default function AboutPage() {
       <footer className="border-t border-cyber-border px-6 py-8">
         <div className="mx-auto max-w-7xl flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <Image src="/logo.png" alt="VulnAI" width={24} height={24} style={{ width: 'auto', height: 'auto' }} className="rounded" />
+            <Image src="/logo.png" alt="VulnAI" width={24} height={24} className="rounded" />
             <span className="text-sm font-bold"><span className="text-white">Vuln</span><span className="text-cyber-cyan">AI</span></span>
           </div>
           <p className="text-sm text-cyber-muted">© 2026 VulnAI. Built by Joshuazaza · Enugu, Nigeria</p>

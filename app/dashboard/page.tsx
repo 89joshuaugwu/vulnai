@@ -24,9 +24,15 @@ const NAV_ICONS = {
 };
 
 function DashboardContent() {
-  const { user, signOut } = useAuth();
+  const { user, signOut, loading: authLoading } = useAuth();
   const router = useRouter();
   const { formatPrice, currency, exchangeRate } = useCurrency();
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push("/login");
+    }
+  }, [user, authLoading, router]);
 
   const searchParams = useSearchParams();
   const initialTab = searchParams.get("tab") || "overview";
@@ -42,6 +48,16 @@ function DashboardContent() {
   const [newPw, setNewPw] = useState("");
   const [confirmPw, setConfirmPw] = useState("");
   const [pwLoading, setPwLoading] = useState(false);
+  const [showPw, setShowPw] = useState(false);
+
+  // Password validation state
+  const hasMinLength = newPw.length >= 8;
+  const hasUpper = /[A-Z]/.test(newPw);
+  const hasLower = /[a-z]/.test(newPw);
+  const hasNumber = /[0-9]/.test(newPw);
+  const hasSpecial = /[^A-Za-z0-9]/.test(newPw);
+  const passwordsMatch = newPw !== "" && newPw === confirmPw;
+  const isValidPassword = hasMinLength && hasUpper && hasLower && hasNumber && hasSpecial && passwordsMatch;
   const isGoogleUser = user?.providerData?.[0]?.providerId === "google.com";
   const [history, setHistory] = useState<SavedReport[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
@@ -467,6 +483,12 @@ ${report.replace(/^### (.*$)/gm, '<h3>$1</h3>').replace(/^## (.*$)/gm, '<h2>$1</
           <div className="p-4 border-b border-cyber-border bg-[#0a0d12]">
             <h3 className="text-xs font-bold text-white uppercase tracking-wider">{history.length} Reports</h3>
           </div>
+          {!usageStats.isPro && (
+            <div className="bg-cyber-orange/10 border-b border-cyber-orange/20 px-4 py-2 flex items-center justify-between">
+              <span className="text-[10px] text-cyber-orange font-medium">Showing last 7 days only.</span>
+              <button onClick={() => setActiveTab("settings")} className="text-[10px] text-cyber-orange hover:underline font-bold flex items-center gap-1">Upgrade to Pro →</button>
+            </div>
+          )}
           <div className="flex-1 overflow-y-auto divide-y divide-cyber-border">
             {historyLoading ? (
               <div className="p-8 text-center text-cyber-cyan animate-pulse text-sm font-mono">Loading...</div>
@@ -479,15 +501,40 @@ ${report.replace(/^### (.*$)/gm, '<h3>$1</h3>').replace(/^## (.*$)/gm, '<h2>$1</
                 <p className="text-[10px] text-cyber-muted mb-4 max-w-[150px]">Your generated reports will appear here.</p>
                 <button onClick={() => setActiveTab("scan")} className="text-[10px] text-cyber-cyan hover:underline">Go to Scan</button>
               </div>
-            ) : history.map((r) => (
-              <button key={r.id} onClick={() => setSelectedReport(r)} className={`w-full text-left p-4 hover:bg-cyber-bg/50 transition-colors ${selectedReport?.id === r.id ? "bg-cyber-bg border-l-[3px] border-cyber-cyan" : "border-l-[3px] border-transparent"}`}>
-                <div className="flex justify-between items-start mb-1">
-                  <span className="text-xs font-bold text-cyber-text">{r.scanType}</span>
-                  <span className="text-[10px] text-cyber-muted font-mono">{new Date(r.createdAt).toLocaleDateString()}</span>
-                </div>
-                <p className="text-[10px] text-cyber-muted truncate font-mono">{r.scanInputSnippet}</p>
-              </button>
-            ))}
+            ) : history.map((r) => {
+              // Parse basic metrics for UI visualization
+              const words = r.reportContent?.split(/\s+/).length || 0;
+              const critical = (r.reportContent?.match(/critical/gi) || []).length;
+              const high = (r.reportContent?.match(/high/gi) || []).length;
+              const medium = (r.reportContent?.match(/medium/gi) || []).length;
+              const low = (r.reportContent?.match(/low/gi) || []).length;
+
+              // Map scanner to color
+              const sColor = ["Nmap", "Nessus"].includes(r.scanType) ? "cyan" : 
+                             ["Burp Suite"].includes(r.scanType) ? "orange" : 
+                             ["OpenVAS"].includes(r.scanType) ? "green" : 
+                             ["Nikto"].includes(r.scanType) ? "purple" : "blue";
+
+              return (
+                <button key={r.id} onClick={() => setSelectedReport(r)} className={`w-full text-left p-4 hover:bg-cyber-bg/50 transition-colors ${selectedReport?.id === r.id ? "bg-cyber-bg border-l-[3px] border-cyber-cyan" : "border-l-[3px] border-transparent"}`}>
+                  <div className="flex justify-between items-start mb-2">
+                    <span className={`text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-${sColor}-400/10 text-${sColor}-400 border border-${sColor}-400/20`}>
+                      {r.scanType}
+                    </span>
+                    <span className="text-[10px] text-cyber-muted font-mono">{new Date(r.createdAt).toLocaleDateString()}</span>
+                  </div>
+                  <div className="flex items-center justify-between mt-3">
+                    <div className="flex gap-2 text-[10px] font-mono">
+                      {critical > 0 && <span className="text-red-400">🔴 {critical}</span>}
+                      {high > 0 && <span className="text-orange-400">🟠 {high}</span>}
+                      {medium > 0 && <span className="text-amber-400">🟡 {medium}</span>}
+                      {(low > 0 || (critical === 0 && high === 0 && medium === 0)) && <span className="text-emerald-400">🟢 {low || 1}</span>}
+                    </div>
+                    <span className="text-[10px] text-cyber-muted font-mono">{words} words</span>
+                  </div>
+                </button>
+              );
+            })}
           </div>
         </div>
         {/* Detail */}
@@ -599,8 +646,8 @@ ${report.replace(/^### (.*$)/gm, '<h3>$1</h3>').replace(/^## (.*$)/gm, '<h2>$1</
             <p className="text-xs text-cyber-muted mb-4">Upgrade to Pro for unlimited reports, Advanced Gemini reasoning, shareable links, and priority support.</p>
             <div className="max-w-[200px]">
               <PaystackButton 
-                amount={Math.round(9 * exchangeRate * 100)} 
-                currency={currency} 
+                amount={5000 * 100} 
+                currency="NGN" 
                 className="w-full text-center py-2.5 rounded-lg font-bold text-sm bg-cyber-cyan text-cyber-bg hover:opacity-90 transition-all block" 
               />
             </div>
@@ -633,8 +680,7 @@ ${report.replace(/^### (.*$)/gm, '<h3>$1</h3>').replace(/^## (.*$)/gm, '<h2>$1</
         ) : (
           <form onSubmit={async (e) => {
             e.preventDefault();
-            if (newPw !== confirmPw) { toast.error("Passwords do not match"); return; }
-            if (newPw.length < 8) { toast.error("Password must be at least 8 characters"); return; }
+            if (!isValidPassword) { toast.error("Please meet all password requirements"); return; }
             setPwLoading(true);
             try {
               const credential = EmailAuthProvider.credential(user!.email!, currentPw);
@@ -646,20 +692,58 @@ ${report.replace(/^### (.*$)/gm, '<h3>$1</h3>').replace(/^## (.*$)/gm, '<h2>$1</
               if (err.code === "auth/wrong-password") toast.error("Current password is incorrect");
               else toast.error(err.message || "Failed to update password");
             } finally { setPwLoading(false); }
-          }} className="space-y-3">
+          }} className="space-y-4">
             <div>
               <label className="block text-xs text-cyber-muted mb-1">Current Password</label>
-              <input type="password" value={currentPw} onChange={e => setCurrentPw(e.target.value)} required className="w-full bg-cyber-bg border border-cyber-border rounded-lg px-3 py-2 text-sm text-cyber-text focus:border-cyber-cyan focus:outline-none" />
+              <div className="relative">
+                <input type={showPw ? "text" : "password"} value={currentPw} onChange={e => setCurrentPw(e.target.value)} required className="w-full bg-cyber-bg border border-cyber-border rounded-lg px-3 py-2 text-sm text-cyber-text focus:border-cyber-cyan focus:outline-none pr-10" />
+                <button type="button" onClick={() => setShowPw(!showPw)} className="absolute right-3 top-1/2 -translate-y-1/2 text-cyber-muted hover:text-cyber-cyan transition-colors" title={showPw ? "Hide Password" : "Show Password"}>
+                  {showPw ? "👁️" : "👁️‍🗨️"}
+                </button>
+              </div>
             </div>
             <div>
               <label className="block text-xs text-cyber-muted mb-1">New Password</label>
-              <input type="password" value={newPw} onChange={e => setNewPw(e.target.value)} required minLength={8} className="w-full bg-cyber-bg border border-cyber-border rounded-lg px-3 py-2 text-sm text-cyber-text focus:border-cyber-cyan focus:outline-none" />
+              <div className="relative">
+                <input type={showPw ? "text" : "password"} value={newPw} onChange={e => setNewPw(e.target.value)} required minLength={8} className="w-full bg-cyber-bg border border-cyber-border rounded-lg px-3 py-2 text-sm text-cyber-text focus:border-cyber-cyan focus:outline-none pr-10" />
+                <button type="button" onClick={() => setShowPw(!showPw)} className="absolute right-3 top-1/2 -translate-y-1/2 text-cyber-muted hover:text-cyber-cyan transition-colors" title={showPw ? "Hide Password" : "Show Password"}>
+                  {showPw ? "👁️" : "👁️‍🗨️"}
+                </button>
+              </div>
+              {newPw && (
+                <div className="mt-3 space-y-1.5 p-3 rounded-lg bg-cyber-bg border border-cyber-border text-xs">
+                  <div className="text-cyber-muted mb-1 font-semibold">Password requirements:</div>
+                  <div className={`flex items-center gap-2 ${hasMinLength ? 'text-cyber-green' : 'text-cyber-muted/60'}`}>
+                    <span>{hasMinLength ? '✓' : '○'}</span> At least 8 characters
+                  </div>
+                  <div className={`flex items-center gap-2 ${hasUpper ? 'text-cyber-green' : 'text-cyber-muted/60'}`}>
+                    <span>{hasUpper ? '✓' : '○'}</span> One uppercase letter
+                  </div>
+                  <div className={`flex items-center gap-2 ${hasLower ? 'text-cyber-green' : 'text-cyber-muted/60'}`}>
+                    <span>{hasLower ? '✓' : '○'}</span> One lowercase letter
+                  </div>
+                  <div className={`flex items-center gap-2 ${hasNumber ? 'text-cyber-green' : 'text-cyber-muted/60'}`}>
+                    <span>{hasNumber ? '✓' : '○'}</span> One number
+                  </div>
+                  <div className={`flex items-center gap-2 ${hasSpecial ? 'text-cyber-green' : 'text-cyber-muted/60'}`}>
+                    <span>{hasSpecial ? '✓' : '○'}</span> One special character
+                  </div>
+                  <div className={`flex items-center gap-2 ${passwordsMatch ? 'text-cyber-green' : 'text-cyber-muted/60'}`}>
+                    <span>{passwordsMatch ? '✓' : '○'}</span> Passwords match
+                  </div>
+                </div>
+              )}
             </div>
             <div>
               <label className="block text-xs text-cyber-muted mb-1">Confirm New Password</label>
-              <input type="password" value={confirmPw} onChange={e => setConfirmPw(e.target.value)} required className="w-full bg-cyber-bg border border-cyber-border rounded-lg px-3 py-2 text-sm text-cyber-text focus:border-cyber-cyan focus:outline-none" />
+              <div className="relative">
+                <input type={showPw ? "text" : "password"} value={confirmPw} onChange={e => setConfirmPw(e.target.value)} required className="w-full bg-cyber-bg border border-cyber-border rounded-lg px-3 py-2 text-sm text-cyber-text focus:border-cyber-cyan focus:outline-none pr-10" />
+                <button type="button" onClick={() => setShowPw(!showPw)} className="absolute right-3 top-1/2 -translate-y-1/2 text-cyber-muted hover:text-cyber-cyan transition-colors" title={showPw ? "Hide Password" : "Show Password"}>
+                  {showPw ? "👁️" : "👁️‍🗨️"}
+                </button>
+              </div>
             </div>
-            <button type="submit" disabled={pwLoading} className="text-xs bg-cyber-cyan/10 text-cyber-cyan border border-cyber-cyan/20 px-4 py-2 rounded hover:bg-cyber-cyan/20 transition-all disabled:opacity-50">
+            <button type="submit" disabled={pwLoading || (newPw.length > 0 && !isValidPassword)} className="text-xs bg-cyber-cyan/10 text-cyber-cyan border border-cyber-cyan/20 px-4 py-2 rounded hover:bg-cyber-cyan/20 transition-all disabled:opacity-50">
               {pwLoading ? "Updating..." : "Update Password"}
             </button>
           </form>
@@ -667,6 +751,17 @@ ${report.replace(/^### (.*$)/gm, '<h3>$1</h3>').replace(/^## (.*$)/gm, '<h2>$1</
       </div>
     </div>
   );
+
+  if (authLoading || !user) {
+    return (
+      <div className="min-h-screen bg-cyber-bg flex items-center justify-center">
+        <div className="flex flex-col items-center">
+          <div className="h-10 w-10 border-4 border-cyber-border border-t-cyber-cyan rounded-full animate-spin mb-4"></div>
+          <p className="text-cyber-cyan font-mono text-sm animate-pulse">Authenticating...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-cyber-bg text-cyber-text flex">
