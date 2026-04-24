@@ -27,6 +27,10 @@ export default function AdminUsersPage() {
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   useEffect(() => {
     if (!authLoading && !user) { router.push("/login"); return; }
@@ -92,12 +96,35 @@ export default function AdminUsersPage() {
     return (
       <div className="flex min-h-screen bg-[#080b0f]">
         <Sidebar navItems={navItems} activeItem="users" onNavChange={() => {}} variant="admin" />
-        <main className="flex-1 lg:ml-[240px] p-6 pt-20 lg:pt-6 flex items-center justify-center">
-          <div className="animate-pulse text-cyber-muted">Loading users...</div>
+        <main className="flex-1 lg:ml-[240px] p-6 pt-20 lg:pt-6">
+          <div className="space-y-8 animate-pulse max-w-6xl">
+            <div>
+              <div className="h-8 bg-cyber-card w-48 rounded mb-2 border border-cyber-border/50"></div>
+              <div className="h-4 bg-cyber-card w-64 rounded border border-cyber-border/50"></div>
+            </div>
+            <div className="bg-cyber-card border border-cyber-border rounded-xl p-6">
+              <div className="h-10 bg-cyber-bg/50 border border-cyber-border w-full rounded mb-6"></div>
+              <div className="space-y-4">
+                {[1,2,3,4,5,6].map(i => (
+                  <div key={i} className="flex gap-4">
+                    <div className="h-8 bg-cyber-bg border border-cyber-border flex-1 rounded"></div>
+                    <div className="h-8 bg-cyber-bg border border-cyber-border w-24 rounded"></div>
+                    <div className="h-8 bg-cyber-bg border border-cyber-border w-24 rounded"></div>
+                    <div className="h-8 bg-cyber-bg border border-cyber-border w-24 rounded"></div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
         </main>
       </div>
     );
   }
+
+  // Pagination Logic
+  const filteredUsers = users.filter(u => u.email?.toLowerCase().includes("")); // To be hooked up with search if needed
+  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
+  const paginatedUsers = filteredUsers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   return (
     <div className="flex min-h-screen bg-[#080b0f]">
@@ -128,7 +155,7 @@ export default function AdminUsersPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {users.map((u) => (
+                  {paginatedUsers.map((u) => (
                     <tr key={u.id} className="border-b border-cyber-border/30 hover:bg-cyber-border/10">
                       <td className="px-4 py-3 font-medium text-white flex items-center gap-2">
                         {u.isAdmin && <span className="bg-cyber-red/20 text-cyber-red text-[10px] px-1.5 py-0.5 rounded border border-cyber-red/30">ADMIN</span>}
@@ -185,6 +212,31 @@ export default function AdminUsersPage() {
                 </tbody>
               </table>
             </div>
+            
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between px-4 py-3 border-t border-cyber-border">
+                <p className="text-xs text-cyber-muted">
+                  Showing <span className="font-bold text-white">{(currentPage - 1) * itemsPerPage + 1}</span> to <span className="font-bold text-white">{Math.min(currentPage * itemsPerPage, filteredUsers.length)}</span> of <span className="font-bold text-white">{filteredUsers.length}</span> users
+                </p>
+                <div className="flex gap-2">
+                  <button 
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                    className="px-3 py-1 text-xs border border-cyber-border rounded hover:bg-cyber-bg disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-cyber-muted"
+                  >
+                    Previous
+                  </button>
+                  <button 
+                    disabled={currentPage === totalPages}
+                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                    className="px-3 py-1 text-xs border border-cyber-border rounded hover:bg-cyber-bg disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-cyber-muted"
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </motion.div>
       </main>

@@ -28,12 +28,12 @@ export default function RootLayout({
           toastOptions={{
             duration: 4000,
             style: {
-              background: "#0D1117",
+              background: "#161b22",
               color: "#C9D1D9",
-              border: "1px solid rgba(0, 212, 255, 0.2)",
-              fontFamily: "var(--font-inter)",
+              border: "1px solid #30363d",
+              fontFamily: "var(--font-inter), system-ui, sans-serif",
               fontSize: "14px",
-              boxShadow: "0 0 15px rgba(0, 212, 255, 0.1)",
+              boxShadow: "0 0 20px rgba(0, 0, 0, 0.5)",
               borderRadius: "12px",
             },
             success: {

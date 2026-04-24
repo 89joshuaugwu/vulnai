@@ -26,6 +26,10 @@ export default function AuditLogPage() {
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState("ALL");
+  
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 15;
 
   useEffect(() => {
     if (!authLoading && !user) { router.push("/login"); return; }
@@ -70,8 +74,28 @@ export default function AuditLogPage() {
     return (
       <div className="flex min-h-screen bg-[#080b0f]">
         <Sidebar navItems={navItems} activeItem="audit-log" onNavChange={() => {}} variant="admin" />
-        <main className="flex-1 lg:ml-[240px] p-6 pt-20 lg:pt-6 flex items-center justify-center">
-          <div className="animate-pulse text-cyber-muted">Loading audit log...</div>
+        <main className="flex-1 lg:ml-[240px] p-6 pt-20 lg:pt-6">
+          <div className="space-y-8 animate-pulse max-w-5xl">
+            <div className="flex justify-between">
+              <div>
+                <div className="h-8 bg-cyber-card w-48 rounded mb-2 border border-cyber-border/50"></div>
+                <div className="h-4 bg-cyber-card w-64 rounded border border-cyber-border/50"></div>
+              </div>
+              <div className="h-10 bg-cyber-card w-80 rounded border border-cyber-border/50"></div>
+            </div>
+            <div className="bg-cyber-card border border-cyber-border rounded-xl p-6">
+              <div className="space-y-4">
+                {[1,2,3,4,5,6,7,8].map(i => (
+                  <div key={i} className="flex gap-4">
+                    <div className="h-8 bg-cyber-bg border border-cyber-border w-32 rounded"></div>
+                    <div className="h-8 bg-cyber-bg border border-cyber-border flex-1 rounded"></div>
+                    <div className="h-8 bg-cyber-bg border border-cyber-border w-24 rounded"></div>
+                    <div className="h-8 bg-cyber-bg border border-cyber-border flex-1 rounded"></div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
         </main>
       </div>
     );
@@ -82,6 +106,9 @@ export default function AuditLogPage() {
     const matchesFilter = filterType === "ALL" || log.action.includes(filterType);
     return matchesSearch && matchesFilter;
   });
+
+  const totalPages = Math.ceil(filteredLogs.length / itemsPerPage);
+  const paginatedLogs = filteredLogs.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   const getBadgeStyle = (action: string) => {
     if (action.includes("LOGIN") || action.includes("AUTH") || action.includes("OTP")) return "bg-blue-400/10 text-blue-400 border-blue-400/20";
@@ -155,7 +182,7 @@ export default function AuditLogPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredLogs.map((log) => (
+                  {paginatedLogs.map((log) => (
                     <tr key={log.id} className="border-b border-cyber-border/30 hover:bg-cyber-border/10">
                       <td className="px-4 py-3 whitespace-nowrap text-cyber-muted font-mono text-[10px]">{new Date(log.createdAt).toLocaleString()}</td>
                       <td className="px-4 py-3 font-medium text-white text-xs">{log.adminEmail}</td>
@@ -175,6 +202,31 @@ export default function AuditLogPage() {
                 </tbody>
               </table>
             </div>
+            
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between px-4 py-3 border-t border-cyber-border mt-2">
+                <p className="text-xs text-cyber-muted">
+                  Showing <span className="font-bold text-white">{(currentPage - 1) * itemsPerPage + 1}</span> to <span className="font-bold text-white">{Math.min(currentPage * itemsPerPage, filteredLogs.length)}</span> of <span className="font-bold text-white">{filteredLogs.length}</span> logs
+                </p>
+                <div className="flex gap-2">
+                  <button 
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                    className="px-3 py-1 text-xs border border-cyber-border rounded hover:bg-cyber-bg disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-cyber-muted"
+                  >
+                    Previous
+                  </button>
+                  <button 
+                    disabled={currentPage === totalPages}
+                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                    className="px-3 py-1 text-xs border border-cyber-border rounded hover:bg-cyber-bg disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-cyber-muted"
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </motion.div>
       </main>

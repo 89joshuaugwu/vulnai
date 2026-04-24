@@ -36,7 +36,7 @@ export default function Sidebar({ navItems, activeItem, onNavChange, variant = "
       {/* Logo */}
       <div className="p-5 border-b border-cyber-border flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2.5 group">
-          <Image src="/logo.png" alt="VulnAI" width={32} height={32} style={{ width: 'auto', height: 'auto' }} className="rounded-lg group-hover:shadow-[0_0_12px_rgba(0,212,255,0.4)] transition-all" />
+          <Image src="/logo.png" alt="VulnAI" width={32} height={32} className="rounded-lg group-hover:shadow-[0_0_12px_rgba(0,212,255,0.4)] transition-all" />
           <span className="text-lg font-bold">
             <span className="text-white">Vuln</span>
             <span className="text-cyber-cyan">AI</span>
@@ -124,7 +124,7 @@ export default function Sidebar({ navItems, activeItem, onNavChange, variant = "
       {/* Mobile hamburger button - fixed top bar */}
       <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-[#0a0d12] border-b border-cyber-border px-4 py-3 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2">
-          <Image src="/logo.png" alt="VulnAI" width={28} height={28} style={{ width: 'auto', height: 'auto' }} className="rounded-lg" />
+          <Image src="/logo.png" alt="VulnAI" width={28} height={28} className="rounded-lg" />
           <span className="text-base font-bold">
             <span className="text-white">Vuln</span><span className="text-cyber-cyan">AI</span>
           </span>
