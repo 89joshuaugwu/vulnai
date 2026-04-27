@@ -192,14 +192,14 @@ export default function PricingPage() {
       {/* Feature Comparison Table */}
       <div className="max-w-4xl mx-auto px-6 pb-20">
         <h2 className="text-2xl font-bold text-white text-center mb-10">Full Feature Comparison</h2>
-        <div className="bg-cyber-card border border-cyber-border rounded-2xl overflow-hidden">
-          <table className="w-full text-sm">
+        <div className="bg-cyber-card border border-cyber-border rounded-2xl overflow-hidden table-responsive">
+          <table className="w-full text-sm min-w-[600px]">
             <thead>
-              <tr className="border-b border-cyber-border">
-                <th className="text-left p-4 text-cyber-muted font-bold">Feature</th>
-                <th className="p-4 text-cyber-muted font-bold text-center">Free</th>
-                <th className="p-4 text-cyber-cyan font-bold text-center">Pro</th>
-                <th className="p-4 font-bold text-center" style={{ color: '#A371F7' }}>Enterprise</th>
+              <tr className="border-b-2 border-cyber-border bg-[#0D1117] sticky top-0 z-10">
+                <th className="text-left p-4 text-cyber-muted font-bold text-xs uppercase tracking-wider">Feature</th>
+                <th className="p-4 text-cyber-muted font-bold text-center text-xs uppercase tracking-wider">Hacker<br/><span className="text-[10px] font-normal normal-case tracking-normal">Free</span></th>
+                <th className="p-4 text-cyber-cyan font-bold text-center text-xs uppercase tracking-wider">Pro<br/><span className="text-[10px] font-normal normal-case tracking-normal">₦5,000/mo</span></th>
+                <th className="p-4 font-bold text-center text-xs uppercase tracking-wider" style={{ color: '#A371F7' }}>Enterprise<br/><span className="text-[10px] font-normal normal-case tracking-normal">Custom</span></th>
               </tr>
             </thead>
             <tbody>
@@ -209,21 +209,28 @@ export default function PricingPage() {
                 ["Export formats", "All 4", "All 4", "All 4 + White-label"],
                 ["Scanner types", "All 10", "All 10", "All 10 + Custom"],
                 ["AI model", "Standard", "Advanced", "Advanced"],
-                ["Email notifications", "❌", "✅", "✅"],
-                ["Shareable links", "❌", "✅", "✅"],
-                ["2FA security", "✅", "✅", "✅"],
+                ["Email notifications", false, true, true],
+                ["Shareable links", false, true, true],
+                ["2FA security", true, true, true],
                 ["Team members", "1", "1", "Up to 20"],
-                ["API access", "❌", "❌", "✅"],
-                ["Custom branding", "❌", "❌", "✅"],
-                ["Priority support", "❌", "❌", "✅"],
-              ].map(([feature, free, pro, ent], i) => (
-                <tr key={i} className="border-b border-cyber-border/50 last:border-0">
-                  <td className="p-4 text-cyber-text font-medium">{feature}</td>
-                  <td className="p-4 text-center text-cyber-muted">{free}</td>
-                  <td className="p-4 text-center text-cyber-text">{pro}</td>
-                  <td className="p-4 text-center text-cyber-text">{ent}</td>
-                </tr>
-              ))}
+                ["API access", false, false, true],
+                ["Custom branding", false, false, true],
+                ["Priority support", false, false, true],
+              ].map(([feature, free, pro, ent], i) => {
+                const renderCell = (val: string | boolean) => {
+                  if (val === true) return <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-cyber-green/10"><svg className="w-4 h-4 text-cyber-green" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span>;
+                  if (val === false) return <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-cyber-red/10"><svg className="w-3.5 h-3.5 text-cyber-red/60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg></span>;
+                  return <span className="font-mono text-xs">{val}</span>;
+                };
+                return (
+                  <tr key={i} className={`border-b border-cyber-border/30 last:border-0 transition-colors hover:bg-cyber-surface/50 ${i % 2 === 0 ? 'bg-transparent' : 'bg-cyber-bg/30'}`}>
+                    <td className="p-4 text-cyber-text font-medium">{feature as string}</td>
+                    <td className="p-4 text-center text-cyber-muted">{renderCell(free)}</td>
+                    <td className="p-4 text-center text-cyber-text">{renderCell(pro)}</td>
+                    <td className="p-4 text-center text-cyber-text">{renderCell(ent)}</td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

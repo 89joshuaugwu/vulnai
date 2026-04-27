@@ -37,8 +37,42 @@ function AnalyticsContent() {
     return (
       <div className="flex min-h-screen bg-cyber-bg">
         <Sidebar navItems={navItems} activeItem="analytics" onNavChange={() => {}} />
-        <main className="flex-1 lg:ml-[250px] p-6 pt-20 lg:pt-6 flex items-center justify-center">
-          <div className="animate-pulse text-cyber-muted">Loading analytics...</div>
+        <main className="flex-1 lg:ml-[250px] p-6 pt-20 lg:pt-6 space-y-8">
+          {/* Skeleton: Page Title */}
+          <div>
+            <div className="skeleton h-7 w-32 mb-2" />
+            <div className="skeleton h-4 w-64" />
+          </div>
+          {/* Skeleton: Stat Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            {[1,2,3,4].map(i => (
+              <div key={i} className="bg-cyber-card border border-cyber-border rounded-xl p-5">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="skeleton h-3 w-20" />
+                  <div className="skeleton h-6 w-6 rounded" />
+                </div>
+                <div className="skeleton h-8 w-16" />
+              </div>
+            ))}
+          </div>
+          {/* Skeleton: Chart Cards */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {[1,2].map(i => (
+              <div key={i} className="bg-cyber-card border border-cyber-border rounded-xl p-6">
+                <div className="skeleton h-4 w-40 mb-6" />
+                <div className="skeleton h-[250px] w-full rounded-lg" />
+              </div>
+            ))}
+          </div>
+          {/* Skeleton: Second Row Charts */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {[1,2].map(i => (
+              <div key={i} className="bg-cyber-card border border-cyber-border rounded-xl p-6">
+                <div className="skeleton h-4 w-36 mb-6" />
+                <div className="skeleton h-[250px] w-full rounded-lg" />
+              </div>
+            ))}
+          </div>
         </main>
       </div>
     );
@@ -247,7 +281,14 @@ function AnalyticsContent() {
 
 export default function AnalyticsPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-cyber-bg flex items-center justify-center text-cyber-muted">Loading...</div>}>
+    <Suspense fallback={
+      <div className="min-h-screen bg-cyber-bg flex items-center justify-center">
+        <div className="flex flex-col items-center">
+          <div className="h-10 w-10 border-4 border-cyber-border border-t-cyber-cyan rounded-full animate-spin mb-4" />
+          <p className="text-cyber-muted text-sm">Loading analytics...</p>
+        </div>
+      </div>
+    }>
       <AnalyticsContent />
     </Suspense>
   );

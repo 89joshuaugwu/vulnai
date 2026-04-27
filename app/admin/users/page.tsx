@@ -142,8 +142,8 @@ export default function AdminUsersPage() {
           </div>
 
           <div className="bg-cyber-card border border-cyber-border rounded-xl p-6">
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm text-left">
+            <div className="table-responsive">
+              <table className="w-full text-sm text-left min-w-[700px]">
                 <thead className="text-xs text-cyber-muted uppercase bg-cyber-card border-b border-cyber-border">
                   <tr>
                     <th className="px-4 py-3">Email</th>

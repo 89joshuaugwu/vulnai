@@ -491,7 +491,23 @@ ${report.replace(/^### (.*$)/gm, '<h3>$1</h3>').replace(/^## (.*$)/gm, '<h2>$1</
           )}
           <div className="flex-1 overflow-y-auto divide-y divide-cyber-border">
             {historyLoading ? (
-              <div className="p-8 text-center text-cyber-cyan animate-pulse text-sm font-mono">Loading...</div>
+              <div className="divide-y divide-cyber-border">
+                {[1,2,3,4].map(i => (
+                  <div key={i} className="p-4">
+                    <div className="flex justify-between items-start mb-2">
+                      <div className="skeleton h-5 w-20 rounded-full" />
+                      <div className="skeleton h-3 w-16" />
+                    </div>
+                    <div className="flex items-center justify-between mt-3">
+                      <div className="flex gap-2">
+                        <div className="skeleton h-4 w-10" />
+                        <div className="skeleton h-4 w-10" />
+                      </div>
+                      <div className="skeleton h-3 w-14" />
+                    </div>
+                  </div>
+                ))}
+              </div>
             ) : history.length === 0 ? (
               <div className="p-8 flex flex-col items-center justify-center text-center h-full">
                 <div className="w-12 h-12 mb-3 rounded-full bg-cyber-bg border border-cyber-border flex items-center justify-center text-xl text-cyber-muted">

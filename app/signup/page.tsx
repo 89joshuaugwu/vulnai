@@ -75,7 +75,7 @@ export default function SignupPage() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-cyber-bg p-4 sm:p-6">
-      <div className="w-full max-w-md bg-cyber-card border border-cyber-border rounded-2xl p-5 sm:p-8 shadow-2xl relative overflow-hidden">
+      <div className="w-full max-w-md bg-cyber-card border border-cyber-border rounded-2xl p-5 sm:p-8 shadow-[0_0_60px_rgba(0,0,0,0.4)] relative overflow-hidden">
         {/* Glow effect */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-1 bg-gradient-to-r from-transparent via-cyber-cyan to-transparent opacity-50" />
         
@@ -96,7 +96,7 @@ export default function SignupPage() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full bg-cyber-bg border border-cyber-border rounded-lg px-4 py-3 text-sm text-cyber-text focus:border-cyber-cyan focus:outline-none transition-colors"
+              className="w-full bg-cyber-bg border border-cyber-border rounded-lg px-4 py-3 text-sm text-cyber-text placeholder:text-cyber-muted/50 transition-all hover:border-cyber-border-hover"
               placeholder="pentester@example.com"
             />
           </div>
@@ -109,7 +109,7 @@ export default function SignupPage() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-cyber-bg border border-cyber-border rounded-lg px-4 py-3 pr-12 text-sm text-cyber-text focus:border-cyber-cyan focus:outline-none transition-colors"
+                className="w-full bg-cyber-bg border border-cyber-border rounded-lg px-4 py-3 pr-12 text-sm text-cyber-text placeholder:text-cyber-muted/50 transition-all hover:border-cyber-border-hover"
                 placeholder="••••••••"
               />
               <button 
@@ -138,7 +138,7 @@ export default function SignupPage() {
                   required
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full bg-cyber-bg border border-cyber-border rounded-lg px-4 py-3 pr-12 text-sm text-cyber-text focus:border-cyber-cyan focus:outline-none transition-colors"
+                  className="w-full bg-cyber-bg border border-cyber-border rounded-lg px-4 py-3 pr-12 text-sm text-cyber-text placeholder:text-cyber-muted/50 transition-all hover:border-cyber-border-hover"
                   placeholder="••••••••"
                 />
                 <button 
@@ -187,9 +187,9 @@ export default function SignupPage() {
           <button 
             type="submit"
             disabled={loading || !isValidPassword || !email}
-            className="w-full bg-cyber-cyan text-cyber-bg font-bold py-3 rounded-lg hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed mt-4"
+            className="w-full bg-cyber-cyan text-cyber-bg font-bold py-3 rounded-lg hover:brightness-110 hover:shadow-[0_0_20px_rgba(0,212,255,0.3)] transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none mt-4 active:scale-[0.98]"
           >
-            {loading ? "Sending Code..." : "Continue with Email"}
+            {loading ? <span className="flex items-center justify-center gap-2"><span className="h-4 w-4 border-2 border-cyber-bg border-t-transparent rounded-full animate-spin" />Sending Code...</span> : "Continue with Email"}
           </button>
         </form>
 
@@ -201,7 +201,7 @@ export default function SignupPage() {
 
         <button 
           onClick={handleGoogle}
-          className="w-full bg-cyber-bg border border-cyber-border text-cyber-text font-bold py-3 rounded-lg hover:border-cyber-cyan transition-all flex items-center justify-center gap-3"
+          className="w-full bg-cyber-bg border border-cyber-border text-cyber-text font-bold py-3 rounded-lg hover:border-cyber-cyan hover:shadow-[0_0_15px_rgba(0,212,255,0.1)] transition-all flex items-center justify-center gap-3 active:scale-[0.98]"
         >
           <svg className="w-5 h-5" viewBox="0 0 24 24">
             <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />

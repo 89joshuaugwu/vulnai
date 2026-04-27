@@ -71,7 +71,7 @@ export default function ResetPasswordPage() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-cyber-bg p-4 sm:p-6">
-      <div className="w-full max-w-md bg-cyber-card border border-cyber-border rounded-2xl p-5 sm:p-8 shadow-[0_0_40px_rgba(0,212,255,0.05)] relative overflow-hidden">
+      <div className="w-full max-w-md bg-cyber-card border border-cyber-border rounded-2xl p-5 sm:p-8 shadow-[0_0_60px_rgba(0,0,0,0.4)] relative overflow-hidden">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-1 bg-gradient-to-r from-transparent via-cyber-cyan to-transparent opacity-50" />
 
         <div className="flex flex-col items-center mb-8">
@@ -92,10 +92,10 @@ export default function ResetPasswordPage() {
             <motion.form key="step1" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} onSubmit={handleSendOTP} className="space-y-4">
               <div>
                 <label className="block text-xs font-bold text-cyber-muted uppercase tracking-wider mb-2">Email Address</label>
-                <input type="email" required value={email} onChange={e => setEmail(e.target.value)} className="w-full bg-[#080b0f] border border-cyber-border rounded-lg px-4 py-3 text-sm text-white focus:border-cyber-cyan focus:outline-none transition-colors" placeholder="pentester@example.com" />
+                <input type="email" required value={email} onChange={e => setEmail(e.target.value)} className="w-full bg-[#080b0f] border border-cyber-border rounded-lg px-4 py-3 text-sm text-white placeholder:text-cyber-muted/50 transition-all hover:border-cyber-border-hover" placeholder="pentester@example.com" />
               </div>
-              <button type="submit" disabled={loading || !email} className="w-full bg-cyber-cyan text-cyber-bg font-bold py-3 rounded-lg hover:opacity-90 transition-all disabled:opacity-50 mt-2 text-sm shadow-[0_0_15px_rgba(0,212,255,0.2)]">
-                {loading ? "Sending..." : "Send OTP"}
+              <button type="submit" disabled={loading || !email} className="w-full bg-cyber-cyan text-cyber-bg font-bold py-3 rounded-lg hover:brightness-110 hover:shadow-[0_0_20px_rgba(0,212,255,0.3)] transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none mt-2 text-sm active:scale-[0.98]">
+                {loading ? <span className="flex items-center justify-center gap-2"><span className="h-4 w-4 border-2 border-cyber-bg border-t-transparent rounded-full animate-spin" />Sending...</span> : "Send OTP"}
               </button>
             </motion.form>
           )}
@@ -107,13 +107,13 @@ export default function ResetPasswordPage() {
                   <span>6-Digit OTP</span>
                   <button type="button" onClick={() => setStep(1)} className="text-cyber-cyan hover:underline">Change Email</button>
                 </label>
-                <input type="text" required maxLength={6} value={otp} onChange={e => setOtp(e.target.value.replace(/\D/g, ''))} className="w-full bg-[#080b0f] border border-cyber-border rounded-lg px-4 py-3 text-center text-xl font-mono text-white focus:border-cyber-cyan focus:outline-none transition-colors tracking-[0.5em]" placeholder="000000" />
+                <input type="text" required maxLength={6} value={otp} onChange={e => setOtp(e.target.value.replace(/\D/g, ''))} className="w-full bg-[#080b0f] border border-cyber-border rounded-lg px-4 py-3 text-center text-xl font-mono text-white transition-all tracking-[0.5em] placeholder:text-cyber-border hover:border-cyber-border-hover" placeholder="000000" />
               </div>
               
               <div className="pt-2">
                 <label className="block text-xs font-bold text-cyber-muted uppercase tracking-wider mb-2">New Password</label>
                 <div className="relative">
-                  <input type={showNewPassword ? "text" : "password"} required value={newPassword} onChange={e => setNewPassword(e.target.value)} className="w-full bg-[#080b0f] border border-cyber-border rounded-lg px-4 py-3 pr-12 text-sm text-white focus:border-cyber-cyan focus:outline-none transition-colors" placeholder="••••••••" />
+                  <input type={showNewPassword ? "text" : "password"} required value={newPassword} onChange={e => setNewPassword(e.target.value)} className="w-full bg-[#080b0f] border border-cyber-border rounded-lg px-4 py-3 pr-12 text-sm text-white placeholder:text-cyber-muted/50 transition-all hover:border-cyber-border-hover" placeholder="••••••••" />
                   <button type="button" onClick={() => setShowNewPassword(!showNewPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-cyber-muted hover:text-cyber-cyan">
                     {showNewPassword ? (
                       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -149,8 +149,8 @@ export default function ResetPasswordPage() {
                 </div>
               </div>
 
-              <button type="submit" disabled={loading || otp.length !== 6 || !isValidPassword} className="w-full bg-cyber-cyan text-cyber-bg font-bold py-3 rounded-lg hover:opacity-90 transition-all disabled:opacity-50 mt-4 text-sm shadow-[0_0_15px_rgba(0,212,255,0.2)]">
-                {loading ? "Resetting..." : "Reset Password"}
+              <button type="submit" disabled={loading || otp.length !== 6 || !isValidPassword} className="w-full bg-cyber-cyan text-cyber-bg font-bold py-3 rounded-lg hover:brightness-110 hover:shadow-[0_0_20px_rgba(0,212,255,0.3)] transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:shadow-none mt-4 text-sm active:scale-[0.98]">
+                {loading ? <span className="flex items-center justify-center gap-2"><span className="h-4 w-4 border-2 border-cyber-bg border-t-transparent rounded-full animate-spin" />Resetting...</span> : "Reset Password"}
               </button>
             </motion.form>
           )}
