@@ -55,6 +55,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signOut = async () => {
+    if (typeof window !== "undefined") {
+      sessionStorage.removeItem("2fa_passed");
+    }
     await firebaseSignOut(auth);
   };
 

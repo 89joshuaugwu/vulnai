@@ -46,35 +46,31 @@ export async function POST(req: NextRequest) {
     const subjectText = type === 'signup' ? 'Verify your VulnAI Account' : 'Reset your VulnAI Password';
     
     const htmlTemplate = `
-      <div style="font-family: 'Courier New', Courier, monospace; background-color: #0D1117; color: #C9D1D9; padding: 40px; border-radius: 12px; max-width: 600px; margin: 0 auto; border: 1px solid #30363D;">
-        <div style="text-align: center; margin-bottom: 30px;">
-          <h1 style="color: #00D4FF; margin: 0; font-size: 28px;">Vuln<span style="color: #ffffff;">AI</span></h1>
-          <p style="color: #8B949E; margin-top: 5px; font-size: 14px;">Security Authentication System</p>
-        </div>
-        
-        <div style="background-color: #161B22; padding: 30px; border-radius: 8px; border: 1px solid #30363D;">
-          <h2 style="color: #ffffff; margin-top: 0; font-size: 20px;">Authentication Required</h2>
-          <p style="color: #C9D1D9; font-size: 15px; line-height: 1.6;">
-            A request was made to authenticate this email address with VulnAI. 
-            Please use the following 6-digit access code to complete your verification.
-          </p>
-          
-          <div style="background-color: #0D1117; padding: 20px; text-align: center; border-radius: 6px; border: 1px dashed #00D4FF; margin: 25px 0;">
-            <span style="font-size: 36px; font-weight: bold; color: #00D4FF; letter-spacing: 6px;">${otpRaw}</span>
+      <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #0d1117; color: #c9d1d9; padding: 40px 20px; text-align: center;">
+        <div style="max-width: 600px; margin: 0 auto; background-color: #161b22; border: 1px solid #30363d; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.4);">
+          <div style="padding: 30px; text-align: center; border-bottom: 1px solid #30363d; background-color: #0d1117;">
+            <h1 style="margin: 0; font-size: 28px; font-weight: 800; letter-spacing: -0.5px;"><span style="color: #ffffff;">Vuln</span><span style="color: #00d4ff;">AI</span></h1>
+            <p style="color: #8b949e; margin-top: 5px; font-size: 14px; margin-bottom: 0;">Security Authentication System</p>
           </div>
-          
-          <p style="color: #F85149; font-size: 13px; text-align: center; margin-bottom: 0;">
-            ⚠️ This code expires in 10 minutes. Do not share this with anyone.
-          </p>
-        </div>
-        
-        <div style="text-align: center; margin-top: 30px; border-top: 1px solid #30363D; padding-top: 20px;">
-          <p style="color: #8B949E; font-size: 12px; margin: 0;">
-            If you did not request this code, please ignore this email or secure your account.
-          </p>
-          <p style="color: #8B949E; font-size: 12px; margin-top: 5px;">
-            &copy; ${new Date().getFullYear()} VulnAI Security. All rights reserved.
-          </p>
+          <div style="padding: 40px 30px; text-align: left;">
+            <h2 style="color: #ffffff; margin-top: 0; font-size: 22px; font-weight: 700;">Authentication Required</h2>
+            <p style="color: #8b949e; font-size: 16px; line-height: 1.6;">
+              A request was made to authenticate this email address with VulnAI. 
+              Please use the following 6-digit access code to complete your verification.
+            </p>
+            
+            <div style="background-color: #0d1117; padding: 24px; text-align: center; border-radius: 8px; border: 1px dashed #00d4ff; margin: 30px 0;">
+              <span style="font-size: 40px; font-weight: 800; color: #00d4ff; letter-spacing: 8px; font-family: monospace;">${otpRaw}</span>
+            </div>
+            
+            <p style="color: #F85149; font-size: 14px; text-align: center; margin-bottom: 0; font-weight: bold;">
+              ⚠️ This code expires in 10 minutes. Do not share it.
+            </p>
+          </div>
+          <div style="background-color: #0d1117; padding: 24px; text-align: center; border-top: 1px solid #30363d;">
+            <p style="color: #8b949e; font-size: 13px; margin: 0 0 5px 0;">If you did not request this code, please secure your account.</p>
+            <p style="color: #8b949e; font-size: 13px; margin: 0;">&copy; ${new Date().getFullYear()} VulnAI Security. All rights reserved.</p>
+          </div>
         </div>
       </div>
     `;

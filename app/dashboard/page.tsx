@@ -28,12 +28,6 @@ function DashboardContent() {
   const router = useRouter();
   const { formatPrice, currency, exchangeRate } = useCurrency();
 
-  useEffect(() => {
-    if (!authLoading && !user) {
-      router.push("/login");
-    }
-  }, [user, authLoading, router]);
-
   const searchParams = useSearchParams();
   const initialTab = searchParams.get("tab") || "overview";
   const [activeTab, setActiveTab] = useState(initialTab);
@@ -43,12 +37,23 @@ function DashboardContent() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
   const [usageStats, setUsageStats] = useState({ allowed: false, remaining: 0, isPro: false, isAdmin: false, require2FA: false, isSuspended: false, announcementBanner: "" });
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push("/login");
+    } else if (!authLoading && user && usageStats.require2FA && typeof window !== "undefined" && sessionStorage.getItem("2fa_passed") !== "true") {
+      router.push("/login");
+    }
+  }, [user, authLoading, router, usageStats.require2FA]);
+
   // Password change state
   const [currentPw, setCurrentPw] = useState("");
   const [newPw, setNewPw] = useState("");
   const [confirmPw, setConfirmPw] = useState("");
   const [pwLoading, setPwLoading] = useState(false);
   const [showPw, setShowPw] = useState(false);
+  const [showPwOtp, setShowPwOtp] = useState(false);
+  const [pwOtpCode, setPwOtpCode] = useState("");
 
   // Password validation state
   const hasMinLength = newPw.length >= 8;
@@ -58,7 +63,7 @@ function DashboardContent() {
   const hasSpecial = /[^A-Za-z0-9]/.test(newPw);
   const passwordsMatch = newPw !== "" && newPw === confirmPw;
   const isValidPassword = hasMinLength && hasUpper && hasLower && hasNumber && hasSpecial && passwordsMatch;
-  const isGoogleUser = user?.providerData?.[0]?.providerId === "google.com";
+  const hasPassword = user?.providerData?.some(p => p.providerId === "password");
   const [history, setHistory] = useState<SavedReport[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [selectedReport, setSelectedReport] = useState<SavedReport | null>(null);
@@ -510,8 +515,8 @@ ${report.replace(/^### (.*$)/gm, '<h3>$1</h3>').replace(/^## (.*$)/gm, '<h2>$1</
               </div>
             ) : history.length === 0 ? (
               <div className="p-8 flex flex-col items-center justify-center text-center h-full">
-                <div className="w-12 h-12 mb-3 rounded-full bg-cyber-bg border border-cyber-border flex items-center justify-center text-xl text-cyber-muted">
-                  📜
+                <div className="w-12 h-12 mb-3 rounded-full bg-cyber-bg border border-cyber-border flex items-center justify-center text-cyber-muted">
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
                 </div>
                 <h4 className="text-xs font-bold text-white mb-1">No Reports</h4>
                 <p className="text-[10px] text-cyber-muted mb-4 max-w-[150px]">Your generated reports will appear here.</p>
@@ -540,11 +545,11 @@ ${report.replace(/^### (.*$)/gm, '<h3>$1</h3>').replace(/^## (.*$)/gm, '<h2>$1</
                     <span className="text-[10px] text-cyber-muted font-mono">{new Date(r.createdAt).toLocaleDateString()}</span>
                   </div>
                   <div className="flex items-center justify-between mt-3">
-                    <div className="flex gap-2 text-[10px] font-mono">
-                      {critical > 0 && <span className="text-red-400">🔴 {critical}</span>}
-                      {high > 0 && <span className="text-orange-400">🟠 {high}</span>}
-                      {medium > 0 && <span className="text-amber-400">🟡 {medium}</span>}
-                      {(low > 0 || (critical === 0 && high === 0 && medium === 0)) && <span className="text-emerald-400">🟢 {low || 1}</span>}
+                    <div className="flex gap-2.5 text-[10px] font-mono items-center">
+                      {critical > 0 && <span className="text-red-400 flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-red-400"></span>{critical}</span>}
+                      {high > 0 && <span className="text-orange-400 flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-orange-400"></span>{high}</span>}
+                      {medium > 0 && <span className="text-amber-400 flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-amber-400"></span>{medium}</span>}
+                      {(low > 0 || (critical === 0 && high === 0 && medium === 0)) && <span className="text-emerald-400 flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-emerald-400"></span>{low || 1}</span>}
                     </div>
                     <span className="text-[10px] text-cyber-muted font-mono">{words} words</span>
                   </div>
@@ -568,7 +573,7 @@ ${report.replace(/^### (.*$)/gm, '<h3>$1</h3>').replace(/^## (.*$)/gm, '<h2>$1</
                       navigator.clipboard.writeText(`${window.location.origin}/reports/${selectedReport.id}`);
                       toast.success("Share link copied to clipboard!");
                     }} className="text-[10px] bg-cyber-purple/10 text-cyber-purple border border-cyber-purple/20 px-2.5 py-1.5 rounded hover:bg-cyber-purple/20 transition-all flex items-center gap-1">
-                      <span>🔗</span> Share
+                      <span><svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg></span> Share
                     </button>
                   )}
                   <button onClick={() => { 
@@ -674,96 +679,130 @@ ${report.replace(/^### (.*$)/gm, '<h3>$1</h3>').replace(/^## (.*$)/gm, '<h2>$1</
       {/* Password Section */}
       <div className="bg-cyber-card border border-cyber-border rounded-xl p-6 space-y-4">
         <h3 className="text-sm font-bold text-white uppercase tracking-wider">Password</h3>
-        {isGoogleUser ? (
-          <div className="space-y-3">
-            <p className="text-xs text-cyber-muted">Your account uses Google Sign-In. You can set a password to also allow email/password login, or reset via email.</p>
-            <button 
-              onClick={async () => {
-                if (!user?.email) return;
-                setPwLoading(true);
-                try {
-                  await sendPasswordResetEmail(auth, user.email);
-                  toast.success("Password setup link sent to your email!");
-                } catch { toast.error("Failed to send reset email"); }
-                finally { setPwLoading(false); }
-              }}
-              disabled={pwLoading}
-              className="text-xs bg-cyber-cyan/10 text-cyber-cyan border border-cyber-cyan/20 px-4 py-2 rounded hover:bg-cyber-cyan/20 transition-all disabled:opacity-50"
-            >
-              {pwLoading ? "Sending..." : "Send Password Setup Link"}
-            </button>
-          </div>
-        ) : (
-          <form onSubmit={async (e) => {
-            e.preventDefault();
-            if (!isValidPassword) { toast.error("Please meet all password requirements"); return; }
+        <form onSubmit={async (e) => {
+          e.preventDefault();
+          if (!isValidPassword) { toast.error("Please meet all password requirements"); return; }
+          
+          if (!showPwOtp) {
             setPwLoading(true);
             try {
+              if (!user?.email) throw new Error("No email associated with account.");
+              const res = await fetch("/api/send-otp", {
+                method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: user.email, type: 'password_change' })
+              });
+              if (!res.ok) throw new Error("Failed to send verification code.");
+              toast.success("Verification code sent to your email!");
+              setShowPwOtp(true);
+            } catch (err: any) {
+              toast.error(err.message || "Something went wrong.");
+            } finally {
+              setPwLoading(false);
+            }
+            return;
+          }
+
+          if (pwOtpCode.length !== 6) { toast.error("Please enter the 6-digit code."); return; }
+          setPwLoading(true);
+          try {
+            // Verify OTP First
+            const otpRes = await fetch('/api/verify-otp', {
+              method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: user!.email, code: pwOtpCode })
+            });
+            const otpData = await otpRes.json();
+            if (!otpRes.ok || !otpData.success) throw new Error("Invalid or expired verification code.");
+
+            // OTP valid, update password
+            if (hasPassword) {
               const credential = EmailAuthProvider.credential(user!.email!, currentPw);
               await reauthenticateWithCredential(user!, credential);
-              await updatePassword(user!, newPw);
-              setCurrentPw(""); setNewPw(""); setConfirmPw("");
-              toast.success("Password updated successfully!");
-            } catch (err: any) {
-              if (err.code === "auth/wrong-password") toast.error("Current password is incorrect");
-              else toast.error(err.message || "Failed to update password");
-            } finally { setPwLoading(false); }
-          }} className="space-y-4">
-            <div>
-              <label className="block text-xs text-cyber-muted mb-1">Current Password</label>
-              <div className="relative">
-                <input type={showPw ? "text" : "password"} value={currentPw} onChange={e => setCurrentPw(e.target.value)} required className="w-full bg-cyber-bg border border-cyber-border rounded-lg px-3 py-2 text-sm text-cyber-text focus:border-cyber-cyan focus:outline-none pr-10" />
-                <button type="button" onClick={() => setShowPw(!showPw)} className="absolute right-3 top-1/2 -translate-y-1/2 text-cyber-muted hover:text-cyber-cyan transition-colors" title={showPw ? "Hide Password" : "Show Password"}>
-                  {showPw ? "👁️" : "👁️‍🗨️"}
-                </button>
-              </div>
-            </div>
-            <div>
-              <label className="block text-xs text-cyber-muted mb-1">New Password</label>
-              <div className="relative">
-                <input type={showPw ? "text" : "password"} value={newPw} onChange={e => setNewPw(e.target.value)} required minLength={8} className="w-full bg-cyber-bg border border-cyber-border rounded-lg px-3 py-2 text-sm text-cyber-text focus:border-cyber-cyan focus:outline-none pr-10" />
-                <button type="button" onClick={() => setShowPw(!showPw)} className="absolute right-3 top-1/2 -translate-y-1/2 text-cyber-muted hover:text-cyber-cyan transition-colors" title={showPw ? "Hide Password" : "Show Password"}>
-                  {showPw ? "👁️" : "👁️‍🗨️"}
-                </button>
-              </div>
-              {newPw && (
-                <div className="mt-3 space-y-1.5 p-3 rounded-lg bg-cyber-bg border border-cyber-border text-xs">
-                  <div className="text-cyber-muted mb-1 font-semibold">Password requirements:</div>
-                  <div className={`flex items-center gap-2 ${hasMinLength ? 'text-cyber-green' : 'text-cyber-muted/60'}`}>
-                    <span>{hasMinLength ? '✓' : '○'}</span> At least 8 characters
-                  </div>
-                  <div className={`flex items-center gap-2 ${hasUpper ? 'text-cyber-green' : 'text-cyber-muted/60'}`}>
-                    <span>{hasUpper ? '✓' : '○'}</span> One uppercase letter
-                  </div>
-                  <div className={`flex items-center gap-2 ${hasLower ? 'text-cyber-green' : 'text-cyber-muted/60'}`}>
-                    <span>{hasLower ? '✓' : '○'}</span> One lowercase letter
-                  </div>
-                  <div className={`flex items-center gap-2 ${hasNumber ? 'text-cyber-green' : 'text-cyber-muted/60'}`}>
-                    <span>{hasNumber ? '✓' : '○'}</span> One number
-                  </div>
-                  <div className={`flex items-center gap-2 ${hasSpecial ? 'text-cyber-green' : 'text-cyber-muted/60'}`}>
-                    <span>{hasSpecial ? '✓' : '○'}</span> One special character
-                  </div>
-                  <div className={`flex items-center gap-2 ${passwordsMatch ? 'text-cyber-green' : 'text-cyber-muted/60'}`}>
-                    <span>{passwordsMatch ? '✓' : '○'}</span> Passwords match
+            }
+            await updatePassword(user!, newPw);
+            setCurrentPw(""); setNewPw(""); setConfirmPw(""); setShowPwOtp(false); setPwOtpCode("");
+            toast.success(hasPassword ? "Password updated successfully!" : "Password added successfully! You can now log in with email.");
+          } catch (err: any) {
+            if (err.message === "Invalid or expired verification code.") toast.error(err.message);
+            else if (err.code === "auth/wrong-password") toast.error("Current password is incorrect");
+            else if (err.code === "auth/requires-recent-login") toast.error("Please log out and log back in to set a password.");
+            else toast.error(err.message || "Failed to update password");
+          } finally { setPwLoading(false); }
+        }} className="space-y-4">
+          
+          {!showPwOtp ? (
+            <>
+              {!hasPassword && (
+                <p className="text-xs text-cyber-muted mb-4">Your account uses Google Sign-In. You can set a password here to also allow email/password login.</p>
+              )}
+              {hasPassword && (
+                <div>
+                  <label className="block text-xs text-cyber-muted mb-1">Current Password</label>
+                  <div className="relative">
+                    <input type={showPw ? "text" : "password"} value={currentPw} onChange={e => setCurrentPw(e.target.value)} required className="w-full bg-cyber-bg border border-cyber-border rounded-lg px-3 py-2 text-sm text-cyber-text focus:border-cyber-cyan focus:outline-none pr-10" />
+                    <button type="button" onClick={() => setShowPw(!showPw)} className="absolute right-3 top-1/2 -translate-y-1/2 text-cyber-muted hover:text-cyber-cyan transition-colors" title={showPw ? "Hide Password" : "Show Password"}>
+                      {showPw ? <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg> : <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" /></svg>}
+                    </button>
                   </div>
                 </div>
               )}
-            </div>
-            <div>
-              <label className="block text-xs text-cyber-muted mb-1">Confirm New Password</label>
-              <div className="relative">
-                <input type={showPw ? "text" : "password"} value={confirmPw} onChange={e => setConfirmPw(e.target.value)} required className="w-full bg-cyber-bg border border-cyber-border rounded-lg px-3 py-2 text-sm text-cyber-text focus:border-cyber-cyan focus:outline-none pr-10" />
-                <button type="button" onClick={() => setShowPw(!showPw)} className="absolute right-3 top-1/2 -translate-y-1/2 text-cyber-muted hover:text-cyber-cyan transition-colors" title={showPw ? "Hide Password" : "Show Password"}>
-                  {showPw ? "👁️" : "👁️‍🗨️"}
-                </button>
+              <div>
+                <label className="block text-xs text-cyber-muted mb-1">New Password</label>
+                <div className="relative">
+                  <input type={showPw ? "text" : "password"} value={newPw} onChange={e => setNewPw(e.target.value)} required minLength={8} className="w-full bg-cyber-bg border border-cyber-border rounded-lg px-3 py-2 text-sm text-cyber-text focus:border-cyber-cyan focus:outline-none pr-10" />
+                  <button type="button" onClick={() => setShowPw(!showPw)} className="absolute right-3 top-1/2 -translate-y-1/2 text-cyber-muted hover:text-cyber-cyan transition-colors" title={showPw ? "Hide Password" : "Show Password"}>
+                    {showPw ? <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg> : <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" /></svg>}
+                  </button>
+                </div>
+                {newPw && (
+                  <div className="mt-3 space-y-1.5 p-3 rounded-lg bg-cyber-bg border border-cyber-border text-xs">
+                    <div className="text-cyber-muted mb-1 font-semibold">Password requirements:</div>
+                    <div className={`flex items-center gap-2 ${hasMinLength ? 'text-cyber-green' : 'text-cyber-muted/60'}`}>
+                      <span>{hasMinLength ? '✓' : '○'}</span> At least 8 characters
+                    </div>
+                    <div className={`flex items-center gap-2 ${hasUpper ? 'text-cyber-green' : 'text-cyber-muted/60'}`}>
+                      <span>{hasUpper ? '✓' : '○'}</span> One uppercase letter
+                    </div>
+                    <div className={`flex items-center gap-2 ${hasLower ? 'text-cyber-green' : 'text-cyber-muted/60'}`}>
+                      <span>{hasLower ? '✓' : '○'}</span> One lowercase letter
+                    </div>
+                    <div className={`flex items-center gap-2 ${hasNumber ? 'text-cyber-green' : 'text-cyber-muted/60'}`}>
+                      <span>{hasNumber ? '✓' : '○'}</span> One number
+                    </div>
+                    <div className={`flex items-center gap-2 ${hasSpecial ? 'text-cyber-green' : 'text-cyber-muted/60'}`}>
+                      <span>{hasSpecial ? '✓' : '○'}</span> One special character
+                    </div>
+                    <div className={`flex items-center gap-2 ${passwordsMatch ? 'text-cyber-green' : 'text-cyber-muted/60'}`}>
+                      <span>{passwordsMatch ? '✓' : '○'}</span> Passwords match
+                    </div>
+                  </div>
+                )}
               </div>
+              <div>
+                <label className="block text-xs text-cyber-muted mb-1">Confirm New Password</label>
+                <div className="relative">
+                  <input type={showPw ? "text" : "password"} value={confirmPw} onChange={e => setConfirmPw(e.target.value)} required className="w-full bg-cyber-bg border border-cyber-border rounded-lg px-3 py-2 text-sm text-cyber-text focus:border-cyber-cyan focus:outline-none pr-10" />
+                  <button type="button" onClick={() => setShowPw(!showPw)} className="absolute right-3 top-1/2 -translate-y-1/2 text-cyber-muted hover:text-cyber-cyan transition-colors" title={showPw ? "Hide Password" : "Show Password"}>
+                    {showPw ? <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg> : <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" /></svg>}
+                  </button>
+                </div>
+              </div>
+            </>
+          ) : (
+            <div>
+              <p className="text-xs text-cyber-muted mb-4">We sent a 6-digit verification code to your email to confirm this change.</p>
+              <label className="block text-xs text-cyber-muted mb-1">Verification Code</label>
+              <input type="text" maxLength={6} required value={pwOtpCode} onChange={(e) => setPwOtpCode(e.target.value.replace(/\D/g, ''))} className="w-full bg-cyber-bg border border-cyber-cyan/50 rounded-lg px-3 py-3 text-2xl tracking-[0.5em] text-center font-mono text-cyber-cyan focus:border-cyber-cyan focus:outline-none transition-all mb-4" placeholder="000000" />
             </div>
-            <button type="submit" disabled={pwLoading || (newPw.length > 0 && !isValidPassword)} className="text-xs bg-cyber-cyan/10 text-cyber-cyan border border-cyber-cyan/20 px-4 py-2 rounded hover:bg-cyber-cyan/20 transition-all disabled:opacity-50">
-              {pwLoading ? "Updating..." : "Update Password"}
+          )}
+          
+          <button type="submit" disabled={pwLoading || (!showPwOtp && (newPw.length === 0 || !isValidPassword)) || (showPwOtp && pwOtpCode.length !== 6)} className="text-xs bg-cyber-cyan/10 text-cyber-cyan border border-cyber-cyan/20 px-4 py-2 rounded hover:bg-cyber-cyan/20 transition-all disabled:opacity-50">
+            {pwLoading ? (showPwOtp ? "Verifying..." : "Sending...") : (!showPwOtp ? "Continue" : (hasPassword ? "Verify & Update" : "Verify & Add"))}
+          </button>
+          
+          {showPwOtp && (
+            <button type="button" onClick={() => setShowPwOtp(false)} className="text-xs text-cyber-muted hover:text-white ml-4" disabled={pwLoading}>
+              Cancel
             </button>
-          </form>
-        )}
+          )}
+        </form>
       </div>
 
       {/* API Access Teaser */}
